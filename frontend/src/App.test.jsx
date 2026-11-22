@@ -15,11 +15,15 @@ import {
   act
 } from "@testing-library/react";
 
+import {
+  QueryClient,
+  QueryClientProvider
+} from "@tanstack/react-query";
+
 import App from "./App.jsx";
 import EntryList from "./components/EntryList.jsx";
 import StudentSearch from "./components/StudentSearch.jsx";
 
-// Fix JSDOM window.scrollTo warning
 Object.defineProperty(window, "scrollTo", {
   value: vi.fn(),
   writable: true,
@@ -28,11 +32,8 @@ Object.defineProperty(window, "scrollTo", {
 
 beforeEach(() => {
   localStorage.clear();
-
-  // Reset scroll mock
   window.scrollTo.mockClear();
 
-  // Mock API responses
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -49,8 +50,23 @@ afterEach(() => {
 describe("PracTrack interface", () => {
 
   it("F-T1 displays the PracTrack system name", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false
+        },
+        mutations: {
+          retry: false
+        }
+      }
+    });
+
     await act(async () => {
-      render(<App />);
+      render(
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      );
     });
 
     expect(

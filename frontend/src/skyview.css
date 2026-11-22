@@ -1,0 +1,262 @@
+/* SKYVIEW / PRACTRACK UI  — styles only; no backend or route changes.
+   Change the photo: frontend/public/images/practrack-mountains.jpg */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
+
+/* Dark colors are the only theme, including the first browser paint. */
+:root {
+  color-scheme: dark;
+  --sky-amber: #e8a94b;
+  --sky-amber-bright: #f0bd72;
+  --sky-radius: 17px;
+  --sky-font-display: "Playfair Display", Georgia, serif;
+  --sky-font-body: "Inter", system-ui, sans-serif;
+  --primary: #e8a94b;
+  --primary-hover: #f0bd72;
+  --text: #f3f1e9;
+  --muted: #a3aab2;
+  --background: #08141f;
+  --surface: #101e2b;
+  --surface-alt: #162635;
+  --border: #ffffff20;
+  --sidebar: #08131f;
+  --sidebar-hover: #182737;
+  --sidebar-active: #332c25;
+  --shadow: 0 18px 52px #00000045;
+}
+:root.dark {
+  color-scheme: dark;
+  --sky-amber: #e8a94b;
+  --sky-amber-bright: #f0bd72;
+  --primary: #e8a94b;
+  --primary-hover: #f0bd72;
+  --text: #f3f1e9;
+  --muted: #a3aab2;
+  --background: #08141f;
+  --surface: #101e2b;
+  --surface-alt: #162635;
+  --border: #ffffff20;
+  --sidebar: #08131f;
+  --sidebar-hover: #182737;
+  --sidebar-active: #332c25;
+  --shadow: 0 18px 52px #00000045;
+}
+body { font-family: var(--sky-font-body); background: var(--background); }
+.shell { --sidebar-width: 244px; background: var(--background); }
+.shell-collapsed { --sidebar-width: 80px; }
+.sidebar, .mobile-drawer { background: var(--sidebar); border-color: var(--border); }
+.sidebar { border-right: 1px solid var(--border); }
+.sidebar-brand { min-height: 110px; padding-inline: 18px; }
+.sidebar .logo { font-family: var(--sky-font-display); font-weight: 600; font-size: 20px; letter-spacing: -.6px; }
+.sidebar .logo-mark, .avatar, .logo-mark { background: linear-gradient(145deg,#c68b3c,#8b5523); box-shadow: 0 3px 20px #e8a94b24; }
+.nav-group { padding: 14px 12px; gap: 4px; }
+.nav-caption { font-size: 9px; letter-spacing: 2.4px; }
+.nav-link { border: 1px solid transparent; font-weight: 600; font-size: 12px; color: var(--muted); border-radius: 11px; transition: background .16s,border-color .16s,color .16s; }
+.nav-link.active, :root:not(.dark) .nav-link.active { border-color: #e8a94b61; color: var(--sky-amber-bright); background: linear-gradient(95deg,#e8a94b22, #e8a94b0a); }
+.nav-link:hover { color: var(--text); border-color: #e8a94b33; }
+.sidebar-bottom { position: relative; padding: 16px; }
+.sidebar-security-text { color: var(--muted); }
+.sidebar-note { margin-bottom: 4px; }
+.sky-sidebar-quote { margin: 8px 3px 28px; border-bottom: 1px solid #e8a94b33; padding: 10px 3px 44px; min-height: 125px; position: relative; overflow: hidden; }
+.sky-sidebar-quote p { position: relative; z-index:1; font-family: var(--sky-font-display); font-style: italic; line-height: 1.5; font-size: 13px; color: var(--muted); }
+.sky-mountain-line { position: absolute; left: 0; right: 0; bottom: -7px; height: 65px; opacity: .42; background: url('/images/practrack-mountains.jpg') center 54%/cover; mask-image: linear-gradient(to top,#000,transparent); -webkit-mask-image: linear-gradient(to top,#000,transparent); }
+.shell-collapsed .sky-sidebar-quote { display: none; }
+.topbar { height: 76px; background: color-mix(in srgb,var(--surface) 75%,transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.topbar-eyebrow { letter-spacing: 2px; font-size: 9px; color: var(--sky-amber); }
+.topbar-left strong { font-size: 11px; color: var(--muted); }
+.topbar-right { gap: 12px; }
+.topbar .avatar { color: #fff; border: 1px solid #e8a94b55; }
+.profile-trigger { border-radius: 30px; padding: 5px 8px; }
+.profile-trigger:hover,.icon-btn:hover { background: var(--surface-alt); }
+.main-content { padding: 23px clamp(16px,2.8vw,40px) 42px; min-width:0; }
+.app-footer { margin: 0 auto; }
+.shell-content { min-width: 0; }
+/* Shared existing cards — applies on every page of every role. */
+.panel, .metric, .admin-quick-links > a, .modal-card, .portal-row, .activity-row { border-color: var(--border); }
+.panel, .metric, .admin-quick-links > a { background: color-mix(in srgb,var(--surface) 82%,transparent); box-shadow: 0 5px 25px #00000012; border-radius: var(--sky-radius); }
+.panel h2, .page-heading h1 { letter-spacing: -.03em; }
+.btn-primary, .btn.btn-primary { color: #161710; background: var(--sky-amber); border-color: var(--sky-amber); }
+.btn-primary:hover, .btn.btn-primary:hover { background: var(--sky-amber-bright); border-color: var(--sky-amber-bright); }
+.btn-secondary, .btn.btn-secondary { color: var(--text); border-color: var(--border); }
+button, .btn, .nav-link { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--sky-amber) !important; outline-offset: 3px; }
+/* Top search + bell */
+.sky-header-tools { display: flex; align-items: center; gap: 10px; }
+.sky-header-search { position: relative; display:flex; align-items:center; width: clamp(180px,25vw,355px); height: 42px; border: 1px solid var(--border); border-radius: 22px; background: color-mix(in srgb,var(--surface-alt) 76%,transparent); padding: 4px 4px 4px 13px; }
+.sky-header-search .sky-search-leading { flex-shrink: 0; color: var(--muted); }
+.sky-header-search input { border:0; box-shadow:none; outline:none; min-height: unset; height: 30px; background:transparent; font-size:11px; padding: 0 8px; }
+.sky-header-search input:focus { box-shadow: none; }
+.sky-header-search > button { width: 33px; height: 33px; flex-shrink:0; border-radius:50%; border:0; display:grid; place-items:center; background: var(--sky-amber); color:#161710; }
+.sky-search-results { position:absolute; top:calc(100% + 8px); left:0; right:0; padding:7px; background: var(--surface); border:1px solid var(--border); border-radius:13px; box-shadow: var(--shadow); z-index:80; }
+.sky-search-results button { display:block; width:100%; border:0; text-align:left; background:transparent; color:var(--text); padding:11px; border-radius:8px; font-size:12px; }
+.sky-search-results button:hover { background:var(--surface-alt); }
+.sky-search-results p { margin:8px 10px; font-size:12px; color:var(--muted); }
+.sky-notifications-holder { position:relative; }
+.sky-notification-btn { color:var(--text); background:transparent; border:1px solid transparent; border-radius:50%; display:grid; place-items:center; width:38px; height:38px; }
+.sky-notification-btn:hover { border-color:var(--border); background:var(--surface-alt); }
+.sky-notifications-popover { position:absolute; top:calc(100% + 9px); right:0; width: min(300px,80vw); padding:15px; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); z-index:80; }
+.sky-notifications-popover > div { display:flex; align-items:center; justify-content:space-between; }
+.sky-notifications-popover > div button { background:transparent; border:0; color:var(--text); padding:4px; }
+.sky-notifications-popover p { margin:9px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+/* Role overview — SkyView inspired without dummy data. */
+.sky-overview { display:grid; gap:18px; margin-bottom:24px; }
+.sky-overview h1,.sky-overview h2 { font-family:var(--sky-font-display); font-weight:500; }
+.sky-overview h2 { margin:6px 0 0; font-size:20px; line-height:1.2; }
+.sky-kicker { display:flex; gap:6px; align-items:center; color:var(--sky-amber-bright); font-size:9px; font-weight:750; letter-spacing:2.1px; text-transform:uppercase; }
+/* Landscape is a real image layer, not an invisible negative-z pseudo-element. */
+.sky-hero {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 310px;
+  padding: clamp(28px, 3.2vw, 46px);
+  color: #fff;
+  background: #0e2232;
+  border: 1px solid #e8a94b43;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px #00000020, inset 0 1px #ffffff17;
+}
+.sky-hero-landscape {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 64% 49%;
+  pointer-events: none;
+  user-select: none;
+}
+.sky-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(4, 16, 29, .95) 0%,
+    rgba(4, 16, 29, .88) 33%,
+    rgba(6, 22, 35, .55) 57%,
+    rgba(6, 20, 30, .16) 76%,
+    rgba(4, 14, 25, .48) 100%);
+}
+.sky-hero-copy, .sky-hero-metric { position: relative; z-index: 2; }
+.sky-hero-copy { max-width:570px; }
+.sky-hero h1 { font-size:clamp(33px,3.4vw,55px); margin:15px 0 8px; line-height:1.07; letter-spacing:-.9px; }
+.sky-hero h1 em { color:#ffcb7c; font-weight:400; }
+.sky-hero-copy > p { max-width:340px; line-height:1.6; font-size:12px; color:#d7dfe5; margin:12px 0 22px; }
+.sky-hero-link { width:max-content; display:flex; align-items:center; gap:9px; border:1px solid #e8a94b88; padding:10px 14px; border-radius:22px; background:#0a172bb2; font-size:12px; color:#ffcf82; }
+.sky-hero-link:hover { background:#e8a94b20; }
+.sky-hero-metric { min-width:180px; margin-left:auto; align-self:center; text-align:right; text-shadow:0 2px 19px #0009; }
+.sky-hero-metric > span { color:#f6dfb8; letter-spacing:2px; font-size:10px; font-weight:750; }
+.sky-hero-metric strong { display:block; white-space:nowrap; font:500 clamp(49px,5.2vw,77px)/1.12 var(--sky-font-display); }
+.sky-hero-metric strong small { font-size:19px; font-family:var(--sky-font-body); margin-left:6px; font-weight:400; }
+.sky-hero-metric > p { font-size:10px; color:#e2dacf; }
+.sky-section-heading,.sky-card-header { display:flex; justify-content:space-between; align-items:end; gap:12px; }
+.sky-section-heading > div > p,.sky-card-header p { font-size:11px; color:var(--muted); line-height:1.6; margin:5px 0 0; }
+.sky-week-section { min-width:0; }
+.sky-steps { display:flex; gap:8px; }
+.sky-steps button { width:29px; height:29px; display:grid; place-items:center; border-radius:50%; background:var(--surface-alt); color:var(--text); border:1px solid var(--border); }
+.sky-week-scroller { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(115px,1fr); gap:10px; overflow-x:auto; padding:13px 2px 12px; scroll-snap-type:x proximity; scrollbar-width:thin; }
+.sky-day { scroll-snap-align:center; min-height:124px; min-width:0; padding:12px 8px; border-radius:13px; background:var(--surface); border:1px solid var(--border); color:var(--text); display:grid; align-items:center; justify-items:center; text-align:center; transition:transform .17s,border-color .17s,box-shadow .17s; }
+.sky-day:hover { transform:translateY(-2px); border-color:#e8a94b77; }
+.sky-day.is-active { border-color:var(--sky-amber); box-shadow:0 0 0 1px #e8a94b55, 0 0 23px #e8a94b20; background:linear-gradient(160deg,#e8a94b18,var(--surface)); }
+.sky-day-name { font-size:10px; color:var(--muted); }
+.sky-day-icon { display:flex; color:var(--sky-amber); }
+.sky-day strong { font-size:18px; line-height:1; }
+.sky-day small { font-size:12px; font-weight:650; }
+.sky-day-status { color:var(--muted); font-size:9px; white-space:nowrap; }
+.sky-dashboard-grid { display:grid; grid-template-columns:minmax(0,1.72fr) minmax(210px,.9fr) minmax(180px,.78fr); gap:12px; }
+.sky-glass { min-width:0; overflow:hidden; border:1px solid var(--border); border-radius:var(--sky-radius); background:color-mix(in srgb,var(--surface) 90%,transparent); box-shadow:0 8px 30px #00000019; }
+.sky-chart-card,.sky-details-card { padding:20px; }
+.sky-card-header { align-items:center; }
+.sky-period-switch { display:flex; padding:3px; border-radius:22px; background:var(--surface-alt); white-space:nowrap; }
+.sky-period-switch button { border:0; border-radius:20px; padding:6px 8px; color:var(--muted); background:transparent; font-size:10px; }
+.sky-period-switch button.selected { background:#e8a94b27; color:var(--sky-amber-bright); }
+.sky-chart-body { height:212px; margin-top:16px; width:100%; }
+.sky-chart-empty { color:var(--muted); text-align:center; font-size:10px; margin:-10px 0 3px; }
+.sky-detail-list { margin-top:14px; }
+.sky-detail { display:flex; gap:9px; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); min-height:39px; }
+.sky-detail:last-child { border:0; }
+.sky-detail svg { flex-shrink:0; color:var(--sky-amber); }
+.sky-detail span { flex:1; font-size:10px; color:var(--muted); }
+.sky-detail strong { max-width:44%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11px; color:var(--text); }
+.sky-quote-card { position:relative; display:flex; flex-direction:column; justify-content:flex-end; min-height:286px; isolation:isolate; background:#152838; color:#f9f1e6; }
+.sky-quote-picture { position:absolute; inset:0; z-index:-1; background:url('/images/practrack-mountains.jpg') 71% center/cover; }
+.sky-quote-card::after { content:""; z-index:-1; position:absolute; inset:0; background:linear-gradient(0deg,#091622f9 2%,#0a1425d3 37%,#0a17261a 85%); }
+.sky-quote-copy { padding:19px; }
+.sky-quote-copy p { font:400 clamp(16px,1.6vw,22px)/1.38 var(--sky-font-display); margin:10px 0; }
+.sky-quote-copy small { font-size:10px; color:#e8cf9f; }
+.sky-people-card { padding:17px 22px 23px; }
+.sky-all-link { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--border); padding:8px 11px; border-radius:20px; font-size:10px; color:var(--text); }
+.sky-all-link:hover { color:var(--sky-amber); border-color:#e8a94b88; }
+.sky-people-row { display:flex; flex-wrap:wrap; gap:16px; padding-top:19px; }
+.sky-person { width:100px; display:grid; gap:6px; justify-items:center; text-align:center; }
+.sky-person-avatar { display:grid; place-items:center; width:47px; height:47px; border-radius:50%; border:1px solid #e8a94b8e; background:linear-gradient(140deg,#99734f,#132e42); color:#fff1d7; font-family:var(--sky-font-display); font-size:18px; }
+.sky-person strong { font-size:10px; font-weight:600; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sky-person small { color:var(--muted); font-size:9px; width:100%; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+.sky-empty-people { margin:18px 0 3px; color:var(--muted); font-size:12px; }
+.sky-quick-actions { margin-bottom:16px; }
+/* Mountain scene on LOGIN and registration, independent of theme and Yeti CSS.
+   Direct background avoids pseudo-elements hidden behind the page background. */
+.auth-screen.auth-screen {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  color-scheme: dark;
+  background-color: #071522;
+  background-image:
+    linear-gradient(90deg,
+      rgba(4, 13, 26, .93) 0%,
+      rgba(4, 15, 28, .74) 36%,
+      rgba(7, 17, 29, .33) 57%,
+      rgba(7, 17, 30, .73) 100%),
+    url('/images/practrack-mountains.jpg');
+  background-size: cover;
+  background-position: center 44%;
+  background-repeat: no-repeat;
+}
+.auth-screen::before, .auth-screen::after { content: none !important; }
+.auth-screen .auth-shell { position: relative; z-index: 1; }
+.auth-screen .auth-story h1,
+.auth-screen .auth-story > p,
+.auth-screen .auth-story .eyebrow,
+.auth-screen .auth-points { color: #f4f2e9; }
+.auth-screen.auth-screen .auth-story h1 span { color: #f0bd72; }
+.auth-screen .auth-form,
+.auth-screen .auth-form.panel {
+  background: rgba(13, 25, 43, .90);
+  border: 1px solid #ffffff35;
+  box-shadow: 0 24px 60px #0008;
+  color: #f4f2e9;
+}
+.auth-screen .auth-form .subtle, .auth-screen .auth-switch { color: #c0c7d0; }
+.auth-screen .auth-form input { background: #1b2c40; border-color: #ffffff24; color: #f4f2e9; }
+.auth-screen .auth-form input:focus { border-color: #e8a94b; box-shadow: 0 0 0 3px #e8a94b26; }
+.auth-screen .btn-primary { color: #11171a; background: #e8a94b; border-color: #e8a94b; }
+.auth-screen .btn-primary:hover { background: #f0bd72; }
+/* Responsive */
+@media (max-width: 1350px) { .sky-dashboard-grid { grid-template-columns: minmax(0,1.4fr) minmax(220px,1fr); } .sky-quote-card { grid-column:span 2; min-height:175px; } .sky-quote-picture { background-position:center 47%; } }
+@media (max-width: 1050px) { .sky-header-search { width:clamp(150px,22vw,250px); } .sky-week-scroller { grid-auto-columns:minmax(115px,1fr); } .sky-hero { min-height:260px; } }
+@media (max-width: 700px) { .sky-dashboard-grid { grid-template-columns:minmax(0,1fr); } .sky-quote-card { grid-column:auto; min-height:175px; } .sky-hero { align-items:flex-start; min-height:310px; flex-direction:column; gap:14px; padding:24px; } .sky-hero-metric { align-self:flex-start; text-align:left; margin-left:0; } .sky-hero-metric strong { font-size:48px; } .sky-day { min-width:115px; } .sky-header-search { display:none; } .main-content { padding:16px 14px 28px; } .sky-chart-card,.sky-details-card { padding:17px; } .sky-people-row { gap:10px; } .sky-person { width:82px; } }
+@media (prefers-reduced-motion: reduce) { .sky-day,.nav-link,.sky-steps button { transition:none!important; } .sky-week-scroller { scroll-behavior:auto; } .sky-glass,.sky-hero { animation:none!important; } }
+
+/* Keep the sky and mountain ridges visible as screens narrow. */
+@media (max-width: 1050px) {
+  .sky-hero-landscape { object-position: 70% 50%; }
+  .auth-screen.auth-screen { background-position: 60% center; }
+}
+@media (max-width: 700px) {
+  .sky-hero::before {
+    background: linear-gradient(180deg,
+      rgba(4, 16, 29, .83) 0%,
+      rgba(4, 16, 29, .66) 55%,
+      rgba(4, 16, 29, .78) 100%);
+  }
+  .sky-hero-landscape { object-position: 73% center; }
+  .auth-screen.auth-screen { background-position: 63% center; }
+}

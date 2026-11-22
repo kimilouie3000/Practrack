@@ -6,11 +6,16 @@ import {
   useMemo,
   useState
 } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiRequest } from "../api/client";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const queryClient = useQueryClient();
+
   const [token, setToken] = useState(
     () => localStorage.getItem("practrack_token") || ""
   );
@@ -19,11 +24,42 @@ export function AuthProvider({ children }) {
   const [initializing, setInitializing] = useState(true);
 
   const logout = useCallback(() => {
+    queryClient.clear();
+
     localStorage.removeItem("practrack_token");
     localStorage.removeItem("practrack_user");
+
     setToken("");
     setUser(null);
-  }, []);
+  }, [queryClient]);
+
+  useEffect(() => {
+    const onExpired = () => {
+      logout();
+
+      toast.error(
+        "Session expired. Please sign in again."
+      );
+
+      if (window.location.pathname !== "/login") {
+        window.location.replace(
+          "/login?session=expired"
+        );
+      }
+    };
+
+    window.addEventListener(
+      "practrack:session-expired",
+      onExpired
+    );
+
+    return () => {
+      window.removeEventListener(
+        "practrack:session-expired",
+        onExpired
+      );
+    };
+  }, [logout]);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,7 +71,11 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        const data = await apiRequest("/auth/me", {}, token);
+        const data = await apiRequest(
+          "/auth/me",
+          {},
+          token
+        );
 
         if (!cancelled) {
           setUser(data.user || null);
@@ -62,16 +102,18 @@ export function AuthProvider({ children }) {
   }, [token, logout]);
 
   const authenticate = useCallback(async (mode, values) => {
-    const endpoint = mode === "register"
-      ? "/auth/register"
-      : "/auth/login";
+    const endpoint =
+      mode === "register"
+        ? "/auth/register"
+        : "/auth/login";
 
-    const payload = mode === "register"
-      ? values
-      : {
-          email: values.email,
-          password: values.password
-        };
+    const payload =
+      mode === "register"
+        ? values
+        : {
+            email: values.email,
+            password: values.password
+          };
 
     const data = await apiRequest(endpoint, {
       method: "POST",
@@ -79,17 +121,47 @@ export function AuthProvider({ children }) {
     });
 
     if (!data.token || !data.user) {
-      throw new Error("The server returned an incomplete login response.");
+      throw new Error(
+        "The server returned an incomplete login response."
+      );
     }
 
-    localStorage.setItem("practrack_token", data.token);
-    localStorage.setItem("practrack_user", JSON.stringify(data.user));
+    localStorage.setItem(
+      "practrack_token",
+      data.token
+    );
+
+    localStorage.setItem(
+      "practrack_user",
+      JSON.stringify(data.user)
+    );
 
     setToken(data.token);
     setUser(data.user);
 
     return data.user;
   }, []);
+
+  const updateSession = useCallback(data => {
+    if (!data?.token || !data?.user) {
+      throw new Error("Invalid session response.");
+    }
+
+    queryClient.clear();
+
+    localStorage.setItem(
+      "practrack_token",
+      data.token
+    );
+
+    localStorage.setItem(
+      "practrack_user",
+      JSON.stringify(data.user)
+    );
+
+    setToken(data.token);
+    setUser(data.user);
+  }, [queryClient]);
 
   const value = useMemo(() => ({
     token,
@@ -98,13 +170,15 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(token && user),
     authenticate,
     logout,
+    updateSession,
     setUser
   }), [
     token,
     user,
     initializing,
     authenticate,
-    logout
+    logout,
+    updateSession
   ]);
 
   return (

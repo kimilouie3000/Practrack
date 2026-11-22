@@ -22,19 +22,21 @@ import {
   PanelLeftOpen,
   Menu,
   X,
-  Sun,
-  Moon,
   LogOut,
   ChevronDown,
   ShieldCheck,
   Users,
-  FileCheck2
+  FileCheck2,
+  UserCog,
+  Send,
+  Building2,
+  ClipboardCheck
 } from "lucide-react";
 
 import ClockLogo from "../ClockLogo";
+import SkyHeaderTools from "../skyview/SkyHeaderTools";
 import useAuth from "../../hooks/useAuth";
 import { useProfile } from "../../hooks/usePracTrack";
-import { useTheme } from "../../context/ThemeContext";
 
 function SidebarNavigation({
   links,
@@ -77,6 +79,10 @@ function SidebarNavigation({
 function SidebarFooter({ collapsed = false }) {
   return (
     <div className="sidebar-bottom">
+      {!collapsed && <div className="sky-sidebar-quote" aria-hidden="true">
+        <p>Different paths.<br />One meaningful journey.</p>
+        <div className="sky-mountain-line" />
+      </div>}
       <div
         className="sidebar-note"
         title="Secure practicum workspace"
@@ -121,7 +127,6 @@ function SidebarBrand({
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const { data: profile } = useProfile();
-  const { theme, toggleTheme } = useTheme();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -132,88 +137,44 @@ export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
 
-  const isStaff = [
-    "admin",
-    "coordinator"
-  ].includes(user?.role);
-
   const isAdmin = user?.role === "admin";
+  const isTeacher = user?.role === "teacher";
+  const isClient = user?.role === "client";
+  const displayName = profile?.name || user?.name || "User";
+  const homePath = isAdmin ? "/admin" : isTeacher ? "/teacher" : isClient ? "/client" : "/dashboard";
 
-  const displayName =
-    profile?.name ||
-    user?.name ||
-    "User";
-
-  const homePath = isAdmin
-    ? "/admin"
-    : "/dashboard";
-
-  const links = isAdmin
-    ? [
-        {
-          path: "/admin",
-          label: "Overview",
-          Icon: LayoutGrid
-        },
-        {
-          path: "/admin/students",
-          label: "Students",
-          Icon: Users
-        },
-        {
-          path: "/admin/records",
-          label: "Hours & Approvals",
-          Icon: FileCheck2
-        },
-        {
-          path: "/admin/schedule",
-          label: "Schedules",
-          Icon: CalendarDays
-        },
-        {
-          path: "/profile",
-          label: "My Profile",
-          Icon: UserRound
-        }
-      ]
-    : [
-        {
-          path: "/dashboard",
-          label: "Overview",
-          Icon: LayoutGrid
-        },
-        {
-          path: "/schedule",
-          label: "Schedule",
-          Icon: CalendarDays
-        },
-        ...(!isStaff
-          ? [
-              {
-                path: "/attendance",
-                label: "Attendance",
-                Icon: Clock3
-              }
-            ]
-          : []),
-        {
-          path: "/records",
-          label: isStaff
-            ? "Approvals & records"
-            : "My Records",
-          Icon: ClipboardList
-        },
-        {
-          path: "/profile",
-          label: "My Profile",
-          Icon: UserRound
-        }
-      ];
+  const links = isAdmin ? [
+    { path: "/admin", label: "Overview", Icon: LayoutGrid },
+    { path: "/admin/students", label: "Students", Icon: Users },
+    { path: "/admin/records", label: "Hours & Approvals", Icon: FileCheck2 },
+    { path: "/admin/schedule", label: "Schedules", Icon: CalendarDays },
+    { path: "/admin/requests", label: "Adjustment Requests", Icon: Send },
+    { path: "/admin/accounts", label: "Accounts", Icon: UserCog },
+    { path: "/profile", label: "My Profile", Icon: UserRound }
+  ] : isTeacher ? [
+    { path: "/teacher", label: "Overview", Icon: LayoutGrid },
+    { path: "/teacher/students", label: "My Students", Icon: Users },
+    { path: "/teacher/hours", label: "Hours Review", Icon: ClipboardCheck },
+    { path: "/teacher/evaluations", label: "Evaluations", Icon: FileCheck2 },
+    { path: "/teacher/requests", label: "My Requests", Icon: Send },
+    { path: "/profile", label: "My Profile", Icon: UserRound }
+  ] : isClient ? [
+    { path: "/client", label: "Overview", Icon: LayoutGrid },
+    { path: "/client/students", label: "Students", Icon: Users },
+    { path: "/client/attendance", label: "Attendance", Icon: Building2 },
+    { path: "/profile", label: "My Profile", Icon: UserRound }
+  ] : [
+    { path: "/dashboard", label: "Overview", Icon: LayoutGrid },
+    { path: "/schedule", label: "Schedule", Icon: CalendarDays },
+    { path: "/attendance", label: "Attendance", Icon: Clock3 },
+    { path: "/records", label: "My Records", Icon: ClipboardList },
+    { path: "/profile", label: "My Profile", Icon: UserRound }
+  ];
 
   useEffect(() => {
     setDrawer(false);
     setProfileMenu(false);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname]);
 
   useEffect(() => {
@@ -404,9 +365,7 @@ export default function AppLayout() {
 
             <div>
               <span className="topbar-eyebrow">
-                {isAdmin
-                  ? "ADMIN WORKSPACE"
-                  : "PRACTICUM MANAGEMENT"}
+                {isAdmin ? "ADMIN WORKSPACE" : isTeacher ? "TEACHER WORKSPACE" : isClient ? "CLIENT WORKSPACE" : "PRACTICUM MANAGEMENT"}
               </span>
 
               <strong>
@@ -416,29 +375,7 @@ export default function AppLayout() {
           </div>
 
           <div className="topbar-right">
-            <span
-              className="connection-dot"
-              title="Secure workspace"
-            />
-
-            {/* Theme toggle */}
-            <button
-              type="button"
-              className="icon-btn"
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              title={
-                theme === "dark"
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
-              }
-            >
-              {theme === "dark" ? (
-                <Sun size={19} />
-              ) : (
-                <Moon size={19} />
-              )}
-            </button>
+            <SkyHeaderTools links={links} />
 
             {/* Account dropdown */}
             <div
@@ -465,9 +402,7 @@ export default function AppLayout() {
                   <small>
                     {isAdmin
                       ? "Admin"
-                      : user?.role === "coordinator"
-                        ? "Coordinator"
-                        : "Student"}
+                      : isTeacher ? "Teacher" : isClient ? "Client" : "Student"}
                   </small>
                 </span>
 

@@ -44,6 +44,7 @@ const DAYS = [
 
 const blank = {
   userId: "",
+  date: "",
   dayOfWeek: "1",
   startTime: "08:00",
   endTime: "17:00",
@@ -55,9 +56,7 @@ const blank = {
 export default function SchedulePage() {
   const { user } = useAuth();
 
-  const staff = ["admin", "coordinator"].includes(
-    user?.role
-  );
+  const staff = user?.role === "admin";
 
   const schedules = useSchedules();
   const students = useStudents();
@@ -102,6 +101,7 @@ export default function SchedulePage() {
         ? {
             userId:
               item.user?._id || item.user || "",
+            date: item.date || "",
             dayOfWeek: String(item.dayOfWeek),
             startTime: item.startTime,
             endTime: item.endTime,
@@ -247,7 +247,7 @@ export default function SchedulePage() {
               >
                 <div className="schedule-date">
                   <CalendarDays size={16} />
-                  {DAYS[item.dayOfWeek]}
+                  {item.date ? `${item.date} (${DAYS[item.dayOfWeek]})` : DAYS[item.dayOfWeek]}
                 </div>
 
                 <h3>{item.subject}</h3>
@@ -335,6 +335,12 @@ export default function SchedulePage() {
                 </option>
               ))}
             </select>
+          </label>
+
+          <label className="field">
+            Specific date (optional — leave blank for weekly recurrence)
+            <input type="date" value={form.date || ""}
+              onChange={event => setForm({ ...form, date: event.target.value })} />
           </label>
 
           <label className="field">

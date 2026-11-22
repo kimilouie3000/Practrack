@@ -1,0 +1,236 @@
+/* PracTrack login character — scoped to the authentication page. */
+.auth-screen .auth-shell {
+  width: min(1190px, 100%);
+  grid-template-columns: minmax(0, 1.16fr) minmax(350px, .84fr);
+  gap: clamp(24px, 5vw, 75px);
+}
+
+.auth-screen .auth-story .logo { margin-bottom: clamp(20px, 3vh, 35px); }
+.auth-screen .auth-story h1 {
+  font-size: clamp(34px, 3.7vw, 49px);
+  margin-top: 22px;
+  margin-bottom: 16px;
+}
+.auth-screen .auth-story > p { line-height: 1.65; margin-top: 14px; }
+.auth-screen .auth-points { margin-top: 18px; gap: 10px; }
+
+.yeti-panel {
+  position: relative;
+  isolation: isolate;
+  width: min(475px, 100%);
+  height: clamp(212px, 26vw, 265px);
+  margin: 18px 0 12px;
+  border: 1px solid rgba(170, 207, 255, .25);
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(140deg, #1d3d64 0%, #255e96 48%, #111e47 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 18px 45px rgba(2,10,27,.22);
+}
+.yeti-panel:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 62% 30%, rgba(153,215,255,.55), transparent 47%),
+              linear-gradient(to top, rgba(10,23,53,.68), transparent 56%);
+}
+.yeti-glow { position: absolute; border-radius: 50%; filter: blur(24px); opacity: .55; }
+.yeti-glow-one { width: 205px; height: 205px; left: 48%; top: -32%; background: #84c4ff; }
+.yeti-glow-two { width: 165px; height: 100px; left: 22%; bottom: -28%; background: #5469fc; }
+.yeti-illustration {
+  position: absolute;
+  display: block;
+  width: min(100%, 520px);
+  height: auto;
+  bottom: -62px;
+  right: -23px;
+  overflow: visible;
+  --yeti-eye-x: 0px;
+  --yeti-eye-y: 0px;
+  --yeti-head-x: 0px;
+  --yeti-head-y: 0px;
+}
+.yeti-character {
+  transform-origin: 297px 295px;
+  animation: yeti-breathe 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+.yeti-head {
+  transform: translate(var(--yeti-head-x), var(--yeti-head-y));
+  transition: transform 140ms ease-out;
+  transform-origin: 294px 175px;
+}
+.yeti-pupils {
+  transform: translate(var(--yeti-eye-x), var(--yeti-eye-y));
+  transition: transform 85ms ease-out;
+}
+.yeti-eyes { transform-origin: 294px 161px; transition: transform 110ms ease-in-out; }
+.yeti-eyes.is-blinking { transform: scaleY(.08); }
+.yeti-arm-wave { transform-origin: 230px 249px; }
+.yeti-panel[data-waving="true"] .yeti-arm-wave { animation: yeti-wave .4s ease-in-out 4 alternate; }
+.yeti-open-arms, .yeti-cover-arms { transition: opacity 240ms ease-in-out; }
+.yeti-open-arms { opacity: 1; }
+.yeti-cover-arms { opacity: 0; }
+.yeti-panel[data-covering="true"] .yeti-open-arms { opacity: 0; }
+.yeti-panel[data-covering="true"] .yeti-cover-arms { opacity: 1; }
+.yeti-cover-right { transform-origin: 343px 257px; transition: transform 240ms ease-out; }
+.yeti-panel[data-peeking="true"] .yeti-cover-right { transform: translate(34px, 39px) rotate(8deg); }
+.yeti-panel[data-mood="happy"] .yeti-character { animation: yeti-cheer 650ms cubic-bezier(.16,1,.3,1) both; }
+.yeti-panel[data-mood="sad"] .yeti-head { animation: yeti-no 500ms ease-in-out 2; }
+.yeti-panel-caption {
+  position: absolute;
+  left: 23px;
+  bottom: 19px;
+  color: #f7fbff;
+  font: 900 clamp(18px, 2.25vw, 28px)/.98 "Manrope", sans-serif;
+  letter-spacing: -.65px;
+  text-shadow: 0 3px 16px rgba(0,0,0,.46);
+}
+.yeti-panel-sparkle {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 7px;
+  height: 7px;
+  background: #dbf7ff;
+  border-radius: 50%;
+  box-shadow: 0 0 18px 5px #91d7ff;
+  animation: yeti-twinkle 3.5s ease-in-out infinite;
+}
+@keyframes yeti-breathe { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-7px) scale(1.015); } }
+@keyframes yeti-wave { from { transform: rotate(-6deg); } to { transform: rotate(18deg); } }
+@keyframes yeti-cheer { 0% { transform: translateY(0) scale(1); } 45% { transform: translateY(-24px) rotate(-4deg) scale(1.065); } 75% { transform: translateY(3px) rotate(2deg) scale(.99); } 100% { transform: translateY(0) scale(1); } }
+@keyframes yeti-no { 0%,100% { transform: translate(var(--yeti-head-x), var(--yeti-head-y)) rotate(0); } 25% { transform: translate(var(--yeti-head-x), var(--yeti-head-y)) rotate(7deg); } 75% { transform: translate(var(--yeti-head-x), var(--yeti-head-y)) rotate(-7deg); } }
+@keyframes yeti-twinkle { 0%,100% { opacity: .25; } 50% { opacity: .95; } }
+
+@media (max-width: 950px) {
+  .auth-screen .auth-shell { grid-template-columns: minmax(0, 1fr); max-width: 530px; gap: 23px; }
+  .auth-screen .auth-story .logo { margin-bottom: 22px; }
+  .auth-screen .auth-story h1 { margin-top: 16px; }
+  .auth-screen .auth-points { display: flex; gap: 8px; }
+  .yeti-panel { max-width: 440px; height: 225px; margin: 15px auto 16px; }
+  .yeti-illustration { width: 470px; max-width: 110%; bottom: -69px; right: -20px; }
+}
+@media (max-width: 560px) {
+  .auth-screen .auth-story h1 { font-size: clamp(30px, 9vw, 38px); }
+  .auth-screen .auth-points { display: flex; flex-wrap: wrap; gap: 7px 15px; font-size: 11px; }
+  .yeti-panel { width: 100%; height: 185px; border-radius: 17px; }
+  .yeti-illustration { width: 365px; bottom: -64px; right: -37px; }
+  .yeti-panel-caption { left: 15px; bottom: 15px; font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yeti-character, .yeti-arm-wave, .yeti-panel-sparkle, .yeti-head { animation: none !important; }
+  .yeti-head, .yeti-pupils, .yeti-eyes, .yeti-open-arms, .yeti-cover-arms, .yeti-cover-right { transition: none !important; }
+}
+
+/* WebGL variant: retains PracTrack's blue/navy panel and mobile sizing. */
+.yeti-panel-3d {
+  background: radial-gradient(ellipse at 68% 27%, #569cce 0%, #22517d 38%, #101d3c 100%);
+}
+.yeti-panel-3d::before { z-index: 1; opacity: .60; }
+.yeti-3d-stage {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.yeti-3d-stage canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+.yeti-panel-3d .yeti-panel-caption {
+  z-index: 3;
+  pointer-events: none;
+  font-size: clamp(17px, 2vw, 25px);
+}
+.yeti-panel-3d .yeti-glow { z-index: 0; }
+.yeti-panel-3d .yeti-panel-sparkle { z-index: 3; }
+@media (max-width: 560px) {
+  .yeti-panel-3d .yeti-panel-caption { font-size: 18px; }
+}
+
+
+/* -----------------------------------------------------------
+   Login-only fixes: always match PracTrack's navy sign-in design
+   regardless of the saved dashboard light/dark theme.
+   These overrides do not change the theme of any other page.
+   ----------------------------------------------------------- */
+.auth-screen {
+  --primary: #6381f8;
+  --primary-hover: #7891ff;
+  --text: #f0f4ff;
+  --muted: #90a3c0;
+  --background: #0c1423;
+  --surface: #172339;
+  --surface-alt: #1c2b43;
+  --border: #273650;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .2);
+  color: var(--text);
+  color-scheme: dark;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(85, 109, 248, .14), transparent 36%),
+    linear-gradient(135deg, #111e37 0%, #0c1423 55%, #091121 100%);
+}
+.auth-screen .auth-form.panel {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, .2);
+}
+.auth-screen .auth-form input {
+  background: var(--surface-alt);
+  color: var(--text);
+  border-color: var(--border);
+}
+.auth-screen .auth-form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 129, 248, .16);
+}
+.auth-screen .auth-story h1,
+.auth-screen .logo strong,
+.auth-screen .auth-form h2,
+.auth-screen .auth-points {
+  color: var(--text);
+}
+.auth-screen .auth-story h1 span { color: var(--primary); }
+.auth-screen .auth-story > p,
+.auth-screen .auth-form .subtle,
+.auth-screen .auth-switch { color: var(--muted); }
+
+/* A taller panel keeps the full yeti and the tagline visible. */
+.auth-screen .yeti-panel-3d {
+  width: min(510px, 100%);
+  height: clamp(285px, 32vw, 345px);
+  margin: 16px 0;
+}
+.auth-screen .yeti-panel-3d .yeti-panel-caption {
+  left: 24px;
+  bottom: 23px;
+  line-height: 1.04;
+  font-size: clamp(19px, 2vw, 27px);
+}
+
+@media (max-width: 950px) {
+  .auth-screen .yeti-panel-3d {
+    width: 100%;
+    max-width: 440px;
+    height: 305px;
+    margin: 16px auto;
+  }
+}
+@media (max-width: 560px) {
+  .auth-screen { padding: 18px 14px; }
+  .auth-screen .yeti-panel-3d {
+    height: 245px;
+    max-width: 100%;
+    margin: 14px auto;
+  }
+  .auth-screen .yeti-panel-3d .yeti-panel-caption {
+    left: 16px;
+    bottom: 17px;
+    font-size: 18px;
+  }
+}
