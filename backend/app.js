@@ -10,6 +10,8 @@ import routes from "./src/routes.js";
 import scheduleRoutes from "./src/scheduleRoutes.js";
 import profileRoutes from "./src/profileRoutes.js";
 import adminRoutes from "./src/adminRoutes.js";
+import adminAccessRoutes from "./src/adminAccessRoutes.js";
+import { teacherRouter, clientRouter } from "./src/portalRoutes.js";
 
 const app = express();
 
@@ -63,6 +65,9 @@ app.get("/api/utils/hours/:minutes", (req, res) => {
 });
 
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminAccessRoutes);
+app.use("/api/teacher", teacherRouter);
+app.use("/api/client", clientRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api", routes);

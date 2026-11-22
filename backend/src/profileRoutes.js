@@ -1,6 +1,8 @@
 
 import { Router } from "express";
 import { authenticate } from "./middleware/auth.js";
+import { auditChange } from "./adjustmentService.js";
+import { studentRequiredMinutes } from "./securityPolicy.js";
 
 const router = Router();
 
@@ -15,6 +17,7 @@ function present(user) {
     studentNo: user.studentNo || "",
     role: user.role,
     company: user.company || "",
+    ...(user.role === "student" ? { requiredMinutes: studentRequiredMinutes(user) } : {}),
     phone: profile.phone || "",
     school: profile.school || "",
     course: profile.course || "",
@@ -91,6 +94,11 @@ router.patch("/", async (req, res) => {
   }
 
   const user = req.user;
+  const identityBefore = { name: user.name, company: user.company };
+
+  if (user.role !== "admin" && (clean.name !== undefined || clean.company !== undefined)) {
+    return res.status(403).json({ message: "Only an administrator can change a person's name or company." });
+  }
 
   if (clean.name !== undefined) {
     user.name = clean.name;
@@ -127,6 +135,11 @@ router.patch("/", async (req, res) => {
   }
 
   await user.save();
+  if (user.role === "admin" &&
+      (identityBefore.name !== user.name || identityBefore.company !== user.company)) {
+    await auditChange(user._id, "Admin profile identity changed", user.name,
+      identityBefore, { name: user.name, company: user.company }, { targetId: user._id });
+  }
 
   return res.json({
     profile: present(user)

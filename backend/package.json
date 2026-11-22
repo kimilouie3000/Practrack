@@ -1,3 +1,4 @@
+
 {
   "name": "practrack-backend",
   "version": "1.0.0",
@@ -7,13 +8,16 @@
     "dev": "node --watch server.js",
     "start": "node server.js",
     "test": "vitest run",
-    "seed:admin": "node scripts/createAdmin.js"
+    "seed:admin": "node scripts/createAdmin.js",
+    "migrate:roles": "node scripts/migrateCoordinatorToTeacher.js",
+    "migrate:email-domain": "node scripts/migrateAccountEmails.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.7.5",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5"
