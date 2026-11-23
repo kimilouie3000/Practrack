@@ -1,95 +1,194 @@
+
 # PracTrack
+### Practicum Hours & Verification System
 
-**Practicum Hours & Verification System**
+PracTrack is a web-based practicum management platform designed to simplify On-the-Job Training (OJT) attendance, practicum-hour tracking, schedule management, and record verification.
 
-PracTrack is a web-based practicum management system designed for students and school administrators. It allows students to record their OJT attendance, monitor their completed hours, and submit records for verification. Administrators can manage student accounts, review attendance, organize schedules, and monitor progress toward the required 240 practicum hours.
+The system provides dedicated workspaces for **Students, Teachers, Clients, and Administrators**, allowing each role to manage its responsibilities through a centralized platform.
 
-## Live Links
+## Live Application
 
-| Service | URL |
+| Service | Link |
 |---|---|
+| Production Website | https://practrack.netlify.app |
+| Backend API | https://practrack.onrender.com |
+| API Health Check | https://practrack.onrender.com/api/health |
 | GitHub Repository | https://github.com/kimilouie3000/Practrack |
-| Live Frontend (Netlify) | https://practrack.netlify.app |
-| Backend Health Check (Render) | https://practrack.onrender.com/api/health |
 
-## Team
+## Main Features
 
-| Member | Role |
+### Student
+- Register and manage a student account.
+- Complete personal and academic information.
+- Clock in and out for practicum attendance.
+- Submit manual attendance records.
+- View schedules, attendance history, and recorded hours.
+- Monitor approved and remaining practicum hours.
+- Correct and resubmit rejected records.
+
+### Teacher
+- Monitor assigned students and their progress.
+- Review and approve or reject attendance submissions.
+- View student schedules and practicum records.
+- Submit student evaluations.
+- Request record or schedule adjustments.
+
+### Client / Host Supervisor
+- View assigned students.
+- Monitor approved attendance and practicum progress.
+- Access relevant student records and information.
+
+### Administrator
+- Monitor system activity and practicum statistics.
+- Manage students and account information.
+- Create Teacher and Client accounts.
+- Activate or deactivate accounts.
+- Reset user passwords.
+- Assign Students to Teachers and Clients.
+- Manage schedules and attendance records.
+- Review adjustment requests and hour approvals.
+- Configure individual student practicum-hour targets.
+
+## Technology Stack
+
+| Component | Technology |
 |---|---|
-| [Member A — Full Name] | Frontend and Interface Lead |
-| [Member B — Full Name] | Backend and Pipeline Lead |
+| Frontend | React 18, Vite 6, JavaScript |
+| Styling | Tailwind CSS, Custom CSS |
+| UI Libraries | Lucide React, Framer Motion, Recharts |
+| Backend | Node.js, Express 5 |
+| Database | MongoDB Atlas, Mongoose |
+| Authentication | JWT, bcryptjs |
+| Frontend Hosting | Netlify |
+| Backend Hosting | Render |
+| Version Control | Git and GitHub |
+| Testing | Vitest, React Testing Library, Supertest |
+| CI/CD | GitHub Actions |
 
-**Course:** IPT 102 — Integrative Programming and Technologies 2  
-**Project:** PracTrack — Practicum Hours & Verification System
+## System Architecture
 
-## Tech Stack
+```text
+                  USER
+                   |
+                   v
+           NETLIFY FRONTEND
+             React + Vite
+                   |
+                   | HTTPS / REST API
+                   v
+            RENDER BACKEND
+            Node.js + Express
+                   |
+                   | Mongoose
+                   v
+             MONGODB ATLAS
+                   |
+              User Accounts
+             Attendance Logs
+                 Schedules
+                Evaluations
+            Adjustment Requests
+```
 
-| Part | Technology | Hosted On |
-|---|---|---|
-| Frontend | React 18, Vite, JavaScript, Tailwind CSS | Netlify |
-| Backend | Node.js, Express.js | Render |
-| Database | MongoDB, Mongoose | MongoDB Atlas |
-| Authentication | JWT, bcryptjs | Render / MongoDB Atlas |
-| Unit Testing | Vitest, React Testing Library, Supertest | Local and GitHub Actions |
-| CI/CD | GitHub Actions | GitHub |
-| Version Control | Git | GitHub |
+The frontend communicates with the backend through REST APIs. User authentication uses JWT, while role-based authorization restricts access to protected features.
 
-## Run It on Your Laptop
+## Project Structure
 
-**Requirements:** Node.js, npm, Git, and access to a MongoDB database.
+```text
+Practrack/
+|
+|-- frontend/
+|   |-- public/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- context/
+|   |   |-- hooks/
+|   |   |-- pages/
+|   |   |-- routes/
+|   |   |-- api/
+|   |   `-- utils/
+|   |-- package.json
+|   `-- .env.example
+|
+|-- backend/
+|   |-- src/
+|   |-- scripts/
+|   |-- tests/
+|   |-- server.js
+|   |-- app.js
+|   |-- package.json
+|   `-- .env.example
+|
+|-- docs/
+|-- .github/workflows/
+`-- README.md
+```
 
-**1. Clone the repository**
+## Local Installation
 
-```powershell
+### Requirements
+
+- Node.js 22 or newer
+- npm
+- Git
+- MongoDB database (local or Atlas)
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/kimilouie3000/Practrack.git
 cd Practrack
 ```
 
-**2. Start the backend**
+### 2. Backend Setup
 
-Open a terminal:
-
-```powershell
+```bash
 cd backend
 npm ci
-notepad .env
 ```
 
-Create or configure `backend/.env` with your own local database connection and JWT secret. Never copy real credentials into the repository.
+Create a `.env` file inside `backend/`:
+
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://127.0.0.1:27017/practrack_dev
+JWT_SECRET=REPLACE_WITH_A_RANDOM_SECRET_AT_LEAST_32_CHARACTERS
+CLIENT_URL=http://localhost:5173
+REQUIRED_HOURS=400
+PRACTICUM_TIME_ZONE=Asia/Manila
+```
+
+Replace the example values with your own configuration.
 
 Start the backend:
 
-```powershell
+```bash
 npm run dev
 ```
 
-Default local backend URL:
+Backend URL:
 
 http://localhost:5000
 
-Health check:
+### 3. Frontend Setup
 
-http://localhost:5000/api/health
+Open another terminal from the repository root:
 
-**3. Start the frontend**
-
-Open a second terminal from the repository root:
-
-```powershell
+```bash
 cd frontend
 npm ci
-notepad .env
 ```
 
-Set the frontend environment variable:
+Create a `.env` file:
 
-```dotenv
+```env
 VITE_API_URL=http://localhost:5000
 ```
 
 Start the frontend:
 
-```powershell
+```bash
 npm run dev
 ```
 
@@ -97,106 +196,200 @@ Open:
 
 http://localhost:5173
 
-The backend and frontend must both be running for the complete application to work locally.
+Both frontend and backend must be running for local development.
+
+## Administrator Account Setup
+
+Configure these variables in `backend/.env`:
+
+```env
+ADMIN_NAME=PracTrack Administrator
+ADMIN_EMAIL=admin@practrack.com
+ADMIN_PASSWORD=REPLACE_WITH_A_NEW_SECURE_PASSWORD
+```
+
+Create or update the Administrator account:
+
+```bash
+cd backend
+npm run seed:admin
+```
+
+The password must contain at least 12 characters.
+
+**Important:** The seed script writes to the database selected by `MONGODB_URI`. Verify the database before running it, especially when working with Production.
 
 ## Environment Variables
 
-PracTrack uses environment variables to keep configuration settings and sensitive credentials separate from the source code.
+| Variable | Purpose |
+|---|---|
+| `MONGODB_URI` | MongoDB connection string |
+| `MONGODB_DATABASE` | Explicit backend database selection |
+| `JWT_SECRET` | JWT authentication secret |
+| `CLIENT_URL` | Allowed frontend origin for CORS |
+| `VITE_API_URL` | Frontend API base URL |
+| `PORT` | Backend listening port |
+| `NODE_ENV` | Development or production mode |
+| `REQUIRED_HOURS` | Default practicum-hour requirement |
+| `MAX_CREDITED_HOURS_PER_RECORD` | Maximum credited hours per record |
+| `PRACTICUM_TIME_ZONE` | Time zone for attendance dates |
 
-| Name | What it is for | Example value |
-|---|---|---|
-| `PORT` | Backend server port | `5000` |
-| `NODE_ENV` | Application environment | `development` |
-| `MONGODB_URI` | MongoDB database connection | `mongodb://127.0.0.1:27017/practrack_dev` |
-| `JWT_SECRET` | Secret used to sign login tokens | `replace-with-your-own-random-secret` |
-| `CLIENT_URL` | Allowed frontend origin for CORS | `http://localhost:5173` |
-| `VITE_API_URL` | Backend API origin used by React | `http://localhost:5000` |
-| `ADMIN_NAME` | Administrator display name | `PracTrack Administrator` |
-| `ADMIN_EMAIL` | Administrator login email | `admin@example.invalid` |
-| `ADMIN_PASSWORD` | Administrator account setup password | `replace-with-your-own-secure-password` |
-| `PRACTICUM_TIME_ZONE` | Time zone for attendance dates | `Asia/Manila` |
+The default practicum requirement is **400 hours** unless configured otherwise. Administrators can also set individual student targets.
 
-Production configuration:
+## Production Deployment
 
-- **Netlify:** `VITE_API_URL` points to `https://practrack.onrender.com`.
-- **Render:** `CLIENT_URL` points to `https://practrack.netlify.app`.
-- **Render:** `MONGODB_URI` connects to MongoDB Atlas.
-- **Render:** `JWT_SECRET` stores the private authentication secret.
+### Frontend — Netlify
 
-The application uses `process.env.PORT` for backend hosting and restricts browser access using the configured `CLIENT_URL`.
+Production branch: `main`
 
-**Security:** Real `.env` files must never be committed to GitHub. The `.env.example` files must contain fake values only. Production passwords and database credentials are stored privately in the hosting environment settings.
+```env
+VITE_API_URL=https://practrack.onrender.com
+```
 
-## Running the Tests
+Netlify builds the frontend using Vite. Environment-variable changes require a new frontend build.
 
-PracTrack uses Vitest for automated testing.
+### Backend — Render
 
-**Backend tests**
+Production branch: `main`
 
-```powershell
+Important configuration:
+
+```env
+NODE_ENV=production
+CLIENT_URL=https://practrack.netlify.app
+MONGODB_DATABASE=practrack
+```
+
+Additional required secrets, including `MONGODB_URI` and `JWT_SECRET`, are configured privately in Render.
+
+### Database — MongoDB Atlas
+
+The project uses separate databases:
+
+| Environment | Database |
+|---|---|
+| Production | `practrack` |
+| Staging | `practrack_staging` |
+
+Production and staging data are independent. Creating accounts in one environment does not automatically create them in the other.
+
+Use separate database credentials with restricted access whenever possible.
+
+## API Overview
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/health` | Verify backend availability |
+| `POST /api/auth/register` | Register a student |
+| `POST /api/auth/login` | Authenticate a user |
+| `GET /api/auth/me` | Retrieve authenticated user |
+| `POST /api/auth/change-password` | Change account password |
+| `/api/profile` | Manage profile information |
+| `/api/logs` | Manage attendance records |
+| `/api/schedule` | Access scheduling features |
+| `/api/admin` | Administrator operations |
+| `/api/teacher` | Teacher operations |
+| `/api/client` | Client operations |
+
+Protected endpoints require a valid JWT and the appropriate user role.
+
+## Authentication and Security
+
+PracTrack includes:
+
+- JWT-based authentication.
+- bcrypt password hashing.
+- Role-based access control.
+- Account activation and deactivation.
+- Login rate limiting and temporary account lockout.
+- Environment-based CORS restrictions.
+- Server-side input validation.
+- Account password reset and change-password functionality.
+
+New account identifiers use the `@practrack.com` domain. New passwords must be 12–128 characters.
+
+Never commit `.env` files, database passwords, JWT secrets, or real account credentials to GitHub. Rotate credentials immediately if exposed.
+
+## Testing
+
+### Backend Tests
+
+```bash
 cd backend
 npm ci
 npm test
 ```
 
-The backend currently contains 10 test cases, including:
+### Frontend Tests
 
-- **B-T1:** Valid student number input
-- **B-T2:** Invalid student number input
-- **B-T3:** API health check returns HTTP 200 and `{"status":"ok"}`
-- **B-T4:** Correct practicum duration formatting
-- **B-T5:** Zero-minute edge case
-
-Additional tests check attendance-hour limits and unauthorized administrator requests.
-
-**Frontend tests**
-
-```powershell
+```bash
 cd frontend
 npm ci
 npm test
 ```
 
-The frontend contains three required tests:
+### Production Build
 
-- **F-T1:** The PracTrack system name appears correctly.
-- **F-T2:** Student search filters the displayed results.
-- **F-T3:** An empty practicum entry list displays a helpful message.
-
-**Total defined test cases: 13 (10 backend, 3 frontend).**
-
-To verify the production frontend build:
-
-```powershell
+```bash
 cd frontend
 npm run build
 ```
 
-All tests should pass before changes are merged or deployed. Unit tests are designed to run without connecting to the live MongoDB Atlas database.
+Automated testing covers application logic, frontend behavior, backend endpoints, and authorization rules.
 
-## How CI/CD Works
+## CI/CD Workflow
 
-PracTrack uses GitHub Actions to automatically check source code changes. Whenever code is pushed to `main` or a pull request targets `main`, the workflow runs separate backend and frontend jobs. The backend job installs dependencies and runs unit tests, while the frontend job installs dependencies, runs unit tests, and builds the React application. Passing checks help the team identify changes that are ready to merge, while Render and Netlify deploy updates according to their configured GitHub deployment settings.
+GitHub Actions runs automated checks when changes are pushed to `main` or a pull request targets `main`.
 
-**Workflow file:** `.github/workflows/ci.yml`
+```text
+Code Changes
+     |
+     v
+GitHub Repository
+     |
+     v
+GitHub Actions
+     |
+     +-- Backend Tests
+     |
+     +-- Frontend Tests
+     |
+     +-- Frontend Build
+     |
+     v
+Pull Request / Merge
+     |
+     +-- Netlify Deployment
+     |
+     +-- Render Deployment
+```
 
-**GitHub Actions:** https://github.com/kimilouie3000/Practrack/actions
+Deployment depends on the hosting services' configured GitHub branches and publishing settings.
 
-## Diagrams
+Workflow: `.github/workflows/ci.yml`
 
-The project includes two diagrams explaining its deployment architecture and continuous integration process.
+## Troubleshooting
 
-**Diagram 1 — Deployment Architecture**
+| Problem | Check |
+|---|---|
+| Failed to fetch | API URL, backend availability, CORS |
+| Incorrect email/password | Account, password, database selection |
+| MongoDB authentication failed | Database username and password |
+| MongoDB connection refused | Atlas IP access list and URI |
+| Wrong database records | `MONGODB_DATABASE` and `MONGODB_URI` |
+| Old interface after deployment | Deployed Git branch and Netlify build |
+| Unauthorized access | JWT validity and user permissions |
 
-Shows how the user's browser, Netlify frontend, Render backend, MongoDB Atlas database, and GitHub repository connect.
+## Project Information
 
-![Deployment Architecture](docs/architecture.png)
+**Project:** PracTrack — Practicum Hours & Verification System
 
-**Diagram 2 — CI/CD Pipeline**
+**Course:** IPT 102 — Integrative Programming and Technologies 2
 
-Shows the development workflow from Git push and pull request through automated testing, review, merge, and deployment.
+**Repository:** [kimilouie3000/Practrack](https://github.com/kimilouie3000/Practrack)
 
-![CI/CD Pipeline](docs/pipeline.png)
+**Project Status:** Deployed, with ongoing functional testing and improvements.
 
-Editable diagram files are also available in the `docs/` directory.
+---
 
+PracTrack aims to provide an organized, reliable, and efficient approach to practicum monitoring, attendance verification, and student progress management.
