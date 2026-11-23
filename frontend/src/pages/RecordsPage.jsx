@@ -48,7 +48,7 @@ const FILTERS = [
 export default function RecordsPage() {
   const { user } = useAuth();
 
-  const staff = ["admin", "coordinator"].includes(
+  const staff = ["admin", "teacher"].includes(
     user?.role
   );
 

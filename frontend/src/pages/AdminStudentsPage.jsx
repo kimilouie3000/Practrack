@@ -1,3 +1,4 @@
+import { usePracTrackSettings } from "../hooks/useSettings";
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -57,6 +58,9 @@ function studentForm(student) {
     email: student?.email || "",
     studentNo: student?.studentNo || "",
     password: "",
+    requiredHours: student?.requiredMinutesOverride != null
+      ? String(student.requiredMinutesOverride / 60) : "",
+    targetChangeReason: "",
     company: student?.company || "",
     active: student?.active !== false,
     profile: Object.fromEntries(
@@ -70,6 +74,8 @@ function studentForm(student) {
 
 function StudentDetail({ id, onClose, onEdit }) {
   const detail = useAdminStudent(id);
+  const settings = usePracTrackSettings();
+  const requiredMinutes = detail.data?.requiredMinutes ?? settings.data?.requiredMinutes ?? 400 * 60;
 
   return (
     <Modal
@@ -136,11 +142,13 @@ function StudentDetail({ id, onClose, onEdit }) {
                 width: `${Math.min(
                   100,
                   detail.data.approvedMinutes /
-                    14400 * 100
+                    requiredMinutes * 100
                 )}%`
               }}
             />
           </div>
+
+          <p className="subtle">Required: {formatMinutes(requiredMinutes)}</p>
 
           <h4>Student profile</h4>
 
@@ -237,6 +245,8 @@ function StudentDetail({ id, onClose, onEdit }) {
 
 export default function AdminStudentsPage() {
   const studentsQuery = useAdminStudents();
+  const settings = usePracTrackSettings();
+  const defaultRequiredMinutes = settings.data?.requiredMinutes || 400 * 60;
   const mutation = useAdminAction();
 
   const [search, setSearch] = useState("");
@@ -291,10 +301,10 @@ export default function AdminStudentsPage() {
 
     if (
       editing === "new" &&
-      form.password.length < 8
+      form.password.length < 12
     ) {
       toast.error(
-        "Password must have at least 8 characters."
+        "Password must have at least 12 characters."
       );
       return;
     }
@@ -325,7 +335,7 @@ export default function AdminStudentsPage() {
 
   async function remove(student) {
     const confirmed = window.confirm(
-      `PERMANENTLY delete ${student.name} and ALL associated attendance and schedule records? This cannot be undone.`
+      `Archive ${student.name}? Their attendance, evaluations, and history will be preserved.`
     );
 
     if (!confirmed) return;
@@ -337,7 +347,7 @@ export default function AdminStudentsPage() {
       });
 
       toast.success(
-        "Student account and records deleted."
+        "Student archived. Records were preserved."
       );
 
       if (selected === student._id) {
@@ -346,6 +356,13 @@ export default function AdminStudentsPage() {
     } catch (error) {
       toast.error(error.message);
     }
+  }
+
+  async function restore(student) {
+    try {
+      await mutation.mutateAsync({ path: `/admin/students/${student._id}/restore`, method: "PATCH" });
+      toast.success("Student restored.");
+    } catch (error) { toast.error(error.message); }
   }
 
   return (
@@ -457,8 +474,8 @@ export default function AdminStudentsPage() {
                       <small>
                         {Math.round(
                           student.approvedMinutes /
-                            14400 * 100
-                        )}% of 240 hours
+                            (student.requiredMinutes || defaultRequiredMinutes) * 100
+                        )}% of {(student.requiredMinutes || defaultRequiredMinutes) / 60} hours
                       </small>
                     </td>
 
@@ -502,9 +519,9 @@ export default function AdminStudentsPage() {
                           Edit
                         </button>
 
-                        <button
+                        {student.active ? <button
                           type="button"
-                          title="Delete student"
+                          title="Archive student"
                           className="btn btn-danger-soft btn-sm"
                           disabled={mutation.isPending}
                           onClick={() =>
@@ -512,7 +529,7 @@ export default function AdminStudentsPage() {
                           }
                         >
                           <Trash2 size={14} />
-                        </button>
+                        </button> : <button type="button" className="btn btn-secondary btn-sm" onClick={() => restore(student)} disabled={mutation.isPending}>Restore</button>}
                       </div>
                     </td>
                   </tr>
@@ -597,7 +614,7 @@ export default function AdminStudentsPage() {
             <input
               type="password"
               autoComplete="new-password"
-              minLength={8}
+              minLength={12}
               required={editing === "new"}
               value={form.password}
               onChange={event =>
@@ -606,6 +623,34 @@ export default function AdminStudentsPage() {
                   password: event.target.value
                 })
               }
+            />
+          </label>
+
+          <label className="field">
+            Required practicum hours (Admin only)
+            <input
+              type="number"
+              min="0.0166666667"
+              step="any"
+              placeholder={`System default: ${defaultRequiredMinutes / 60} hours`}
+              value={form.requiredHours}
+              onChange={event => setForm({
+                ...form,
+                requiredHours: event.target.value
+              })}
+            />
+            <small>Any positive number; leave blank to use the system default.</small>
+          </label>
+
+          <label className="field">
+            Reason for target change (audit note)
+            <input
+              maxLength={300}
+              value={form.targetChangeReason}
+              onChange={event => setForm({
+                ...form,
+                targetChangeReason: event.target.value
+              })}
             />
           </label>
 

@@ -1,4 +1,3 @@
-
 import {
   lazy,
   Suspense,
@@ -28,6 +27,11 @@ import {
   LockKeyhole,
   LogIn
 } from "lucide-react";
+
+// Load the WebGL avatar only on the login/register page, not inside dashboards.
+const YetiAvatar = lazy(() => import("./components/YetiAvatar"));
+import { roleHome } from "./utils/roleHome";
+import "./portal.css";
 
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -78,6 +82,11 @@ const AdminRecordsPage = lazy(
   () => import("./pages/AdminRecordsPage")
 );
 
+const TeacherPortalPage = lazy(() => import("./pages/TeacherPortalPage"));
+const ClientPortalPage = lazy(() => import("./pages/ClientPortalPage"));
+const AdminAccountsPage = lazy(() => import("./pages/AdminAccountsPage"));
+const AdminRequestsPage = lazy(() => import("./pages/AdminRequestsPage"));
+
 const fadeAnimation = {
   hidden: {
     opacity: 0,
@@ -111,6 +120,8 @@ function AuthPage() {
   const [mode, setMode] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [yetiFocus, setYetiFocus] = useState(null);
+  const [yetiMood, setYetiMood] = useState("idle");
 
   const [form, setForm] = useState({
     name: "",
@@ -121,6 +132,17 @@ function AuthPage() {
 
   const isRegister = mode === "register";
 
+  // Restore the idle expression after an unsuccessful sign-in.
+  useEffect(() => {
+    if (yetiMood !== "sad") return;
+
+    const timeout = window.setTimeout(() => {
+      setYetiMood("idle");
+    }, 1650);
+
+    return () => window.clearTimeout(timeout);
+  }, [yetiMood]);
+
   useEffect(() => {
     if (
       !initializing &&
@@ -128,9 +150,7 @@ function AuthPage() {
       !submitted.current
     ) {
       navigate(
-        user?.role === "admin"
-          ? "/admin"
-          : "/dashboard",
+        roleHome(user?.role),
         { replace: true }
       );
     }
@@ -156,6 +176,8 @@ function AuthPage() {
     );
 
     setShowPassword(false);
+    setYetiFocus(null);
+    setYetiMood("idle");
 
     setForm(current => ({
       ...current,
@@ -215,6 +237,15 @@ function AuthPage() {
         email
       });
 
+      // Decorative feedback only; the existing auth call stays unchanged.
+      setYetiMood("happy");
+      const reducedMotion = typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (!reducedMotion) {
+        await new Promise(resolve => window.setTimeout(resolve, 160));
+      }
+
       if (isRegister) {
         toast.success(
           "Account created! Complete your student profile."
@@ -228,22 +259,11 @@ function AuthPage() {
           "Welcome back to PracTrack!"
         );
 
-        const destination =
-          location.state?.from?.pathname ||
-          "/dashboard";
-
-        navigate(
-          signedInUser?.role === "admin"
-            ? "/admin"
-            : destination === "/login" ||
-              destination.startsWith("/admin")
-                ? "/dashboard"
-                : destination,
-          { replace: true }
-        );
+        navigate(roleHome(signedInUser?.role), { replace: true });
       }
     } catch (error) {
       submitted.current = false;
+      setYetiMood("sad");
 
       toast.error(
         error.message ||
@@ -283,6 +303,15 @@ function AuthPage() {
             </span>{" "}
             forward.
           </h1>
+
+          <Suspense fallback={<div className="yeti-panel yeti-panel-3d" aria-hidden="true" />}>
+            <YetiAvatar
+              focusField={yetiFocus}
+              passwordVisible={showPassword}
+              mood={yetiMood}
+              emailValue={form.email}
+            />
+          </Suspense>
 
           <p>
             Organize your training schedule, record daily
@@ -385,7 +414,9 @@ function AuthPage() {
               name="email"
               required
               autoComplete="email"
-              placeholder="student@example.com"
+              placeholder="student01@practrack.com"
+              onFocus={() => setYetiFocus("email")}
+              onBlur={() => setYetiFocus(null)}
               value={form.email}
               onChange={event =>
                 updateForm(
@@ -399,7 +430,15 @@ function AuthPage() {
           <label className="field">
             Password
 
-            <div className="password-input">
+            <div
+              className="password-input"
+              onFocus={() => setYetiFocus("password")}
+              onBlur={event => {
+                if (!event.currentTarget.contains(event.relatedTarget)) {
+                  setYetiFocus(null);
+                }
+              }}
+            >
               <input
                 type={
                   showPassword
@@ -526,7 +565,7 @@ function ScrollToTop() {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: "instant"
+      behavior: "auto"
     });
   }, [pathname]);
 
@@ -659,7 +698,7 @@ function AppRoutes() {
           path="/"
           element={
             <Navigate
-              to="/dashboard"
+              to="/login"
               replace
             />
           }
@@ -725,16 +764,15 @@ function AppRoutes() {
                   </LazyPage>
                 }
               />
+              <Route path="/admin/accounts" element={<LazyPage><AdminAccountsPage /></LazyPage>} />
+              <Route path="/admin/requests" element={<LazyPage><AdminRequestsPage /></LazyPage>} />
             </Route>
 
-            {/* Student and coordinator routes */}
+            {/* Student-only routes */}
             <Route
               element={
                 <ProtectedRoute
-                  allowedRoles={[
-                    "student",
-                    "coordinator"
-                  ]}
+                  allowedRoles={["student"]}
                 />
               }
             >
@@ -777,6 +815,22 @@ function AppRoutes() {
               </Route>
             </Route>
 
+            {/* Teacher portal */}
+            <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
+              <Route path="/teacher" element={<LazyPage><TeacherPortalPage section="overview" /></LazyPage>} />
+              <Route path="/teacher/students" element={<LazyPage><TeacherPortalPage section="students" /></LazyPage>} />
+              <Route path="/teacher/hours" element={<LazyPage><TeacherPortalPage section="hours" /></LazyPage>} />
+              <Route path="/teacher/evaluations" element={<LazyPage><TeacherPortalPage section="evaluations" /></LazyPage>} />
+              <Route path="/teacher/requests" element={<LazyPage><TeacherPortalPage section="requests" /></LazyPage>} />
+            </Route>
+
+            {/* Read-only client portal */}
+            <Route element={<ProtectedRoute allowedRoles={["client"]} />}>
+              <Route path="/client" element={<LazyPage><ClientPortalPage section="overview" /></LazyPage>} />
+              <Route path="/client/students" element={<LazyPage><ClientPortalPage section="students" /></LazyPage>} />
+              <Route path="/client/attendance" element={<LazyPage><ClientPortalPage section="attendance" /></LazyPage>} />
+            </Route>
+
             {/* Profile available for every role */}
             <Route
               path="/profile"
@@ -793,7 +847,7 @@ function AppRoutes() {
           path="*"
           element={
             <Navigate
-              to="/dashboard"
+              to="/login"
               replace
             />
           }

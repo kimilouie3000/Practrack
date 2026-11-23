@@ -1,35 +1,27 @@
-
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
+import { createContext, useContext, useLayoutEffect, useMemo } from "react";
 
 const ThemeContext = createContext(null);
 
+/** PracTrack's dashboard uses a permanent dark theme. */
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem("practrack_theme");
-    return saved === "dark" ? "dark" : "light";
-  });
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("dark");
+    root.dataset.theme = "dark";
+    // Replace any old saved preference so users never reopen in light mode.
+    try {
+      localStorage.setItem("practrack_theme", "dark");
+    } catch {
+      // Storage may be unavailable; the stylesheet still uses dark colors.
+    }
+  }, []);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem("practrack_theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((current) => current === "dark" ? "light" : "dark");
-  };
-
+  // Preserve the old context API for other components. Switching is intentionally disabled.
   const value = useMemo(() => ({
-    theme,
-    setTheme,
-    toggleTheme
-  }), [theme]);
+    theme: "dark",
+    setTheme: () => {},
+    toggleTheme: () => {}
+  }), []);
 
   return (
     <ThemeContext.Provider value={value}>
@@ -40,10 +32,8 @@ export function ThemeProvider({ children }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-
   if (!context) {
     throw new Error("useTheme must be used inside ThemeProvider.");
   }
-
   return context;
 }

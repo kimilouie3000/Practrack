@@ -70,7 +70,7 @@ export function localDay(date) {
   return `${year}-${month}-${day}`;
 }
 
-export function validateEntry(form) {
+export function validateEntry(form, options = {}) {
   const start = new Date(form.startAt);
   const end = new Date(form.endAt);
 
@@ -90,15 +90,17 @@ export function validateEntry(form) {
     return "End time must be after start time.";
   }
 
-  if (end > new Date()) {
+  if (!options.allowFuture && end > new Date()) {
     return "You cannot record future hours.";
   }
 
-  if (minutes < 1 || minutes > 720) {
-    return "Hours must be between 1 minute and 12 hours.";
+  if (minutes < 1 || (!options.allowLongDuration && minutes > 720)) {
+    return options.allowLongDuration
+      ? "End time must be at least one minute after start time."
+      : "Hours must be between 1 minute and 12 hours.";
   }
 
-  if (localDay(start) !== localDay(end)) {
+  if (!options.allowMultipleDays && localDay(start) !== localDay(end)) {
     return "Start and end must be on the same day.";
   }
 

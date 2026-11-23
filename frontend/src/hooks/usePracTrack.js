@@ -50,7 +50,7 @@ export function useSchedules() {
 export function useStudents() {
   const { token, user } = useAuth();
 
-  const isStaff = ["admin", "coordinator"].includes(
+  const isStaff = ["admin", "teacher"].includes(
     user?.role
   );
 

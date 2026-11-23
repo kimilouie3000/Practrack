@@ -1,9 +1,12 @@
+import { rateLimit } from "express-rate-limit";
+import { normalizedEmail, isPracTrackEmail, isStrongPassword, AUTH_LIMIT, AUTH_LOCK_MS, requiredMinutes, studentRequiredMinutes } from "./securityPolicy.js";
 
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { User, TimeEntry } from "./models.js";
+import { auditChange, recordSnapshot } from "./adjustmentService.js";
 import {
   authenticate,
   allowRoles
@@ -17,7 +20,7 @@ const router = Router();
 
 function makeToken(user) {
   return jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: user.role, ver: Number(user.passwordVersion || 0) },
     process.env.JWT_SECRET,
     { expiresIn: "8h" }
   );
@@ -30,6 +33,7 @@ function publicUser(user) {
     email: user.email,
     studentNo: user.studentNo || "",
     role: user.role,
+    mustChangePassword: Boolean(user.mustChangePassword),
     company: user.company || ""
   };
 }
@@ -90,7 +94,18 @@ async function hasOverlap(userId, start, end, excludeId = null) {
 
 // AUTHENTICATION
 
-router.post("/auth/register", async (req, res) => {
+// Per-instance IP throttle plus persistent per-account lockout for incorrect logins.
+// For multi-instance deployment, configure a shared rate-limit store.
+const loginLimiter = rateLimit({ windowMs: 15 * 60_000, limit: 30,
+  standardHeaders: "draft-8", legacyHeaders: false,
+  message: { message: "Too many login attempts. Try again later." }
+});
+const registerLimiter = rateLimit({ windowMs: 60 * 60_000, limit: 10,
+  standardHeaders: "draft-8", legacyHeaders: false,
+  message: { message: "Too many registrations. Try again later." }
+});
+
+router.post("/auth/register", registerLimiter, async (req, res) => {
   try {
     const { name, email, password, studentNo } = req.body;
 
@@ -100,10 +115,13 @@ router.post("/auth/register", async (req, res) => {
       });
     }
 
-    if (password.length < 8) {
+    if (!isStrongPassword(password)) {
       return res.status(400).json({
-        message: "Password must be at least 8 characters."
+        message: "Password must be 12–128 characters."
       });
+    }
+    if (!isPracTrackEmail(email)) {
+      return res.status(400).json({ message: "Use a username@practrack.com login address." });
     }
 
     if (!isValidStudentNumber(studentNo)) {
@@ -112,11 +130,11 @@ router.post("/auth/register", async (req, res) => {
       });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const accountEmail = normalizedEmail(email);
 
     const exists = await User.exists({
       $or: [
-        { email: normalizedEmail },
+        { email: accountEmail },
         { studentNo: studentNo.trim() }
       ]
     });
@@ -129,7 +147,7 @@ router.post("/auth/register", async (req, res) => {
 
     const user = await User.create({
       name: name.trim(),
-      email: normalizedEmail,
+      email: accountEmail,
       studentNo: studentNo.trim(),
       passwordHash: await bcrypt.hash(password, 12),
       role: "student"
@@ -152,33 +170,60 @@ router.post("/auth/register", async (req, res) => {
   }
 });
 
-router.post("/auth/login", async (req, res) => {
-  const email = String(req.body.email || "")
-    .trim()
-    .toLowerCase();
+router.post("/auth/login", loginLimiter, async (req, res) => {
+  const email = normalizedEmail(req.body?.email);
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+  if (!email || !password) return res.status(400).json({ message: "Email and password are required." });
 
-  const password = String(req.body.password || "");
-
-  const user = await User.findOne({ email });
-
-  if (
-    !user ||
-    !user.active ||
-    !(await bcrypt.compare(password, user.passwordHash))
-  ) {
-    return res.status(401).json({
-      message: "Incorrect email or password."
-    });
+  // Existing non-PracTrack addresses remain usable until an admin transitions them.
+  const user = await User.findOne({ email }).select("+failedLoginAttempts +lockedUntil");
+  const failure = { message: "Incorrect email or password." };
+  if (!user || !user.active || user.archivedAt) return res.status(401).json(failure);
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    return res.status(423).json({ message: "Account temporarily locked. Try again in 15 minutes or contact an admin." });
   }
+  if (!(await bcrypt.compare(password, user.passwordHash))) {
+    const failures = Number(user.failedLoginAttempts || 0) + 1;
+    user.failedLoginAttempts = failures;
+    if (failures >= AUTH_LIMIT) {
+      user.lockedUntil = new Date(Date.now() + AUTH_LOCK_MS);
+      user.failedLoginAttempts = 0;
+    }
+    await user.save();
+    return res.status(401).json(failure);
+  }
+  user.failedLoginAttempts = 0;
+  user.lockedUntil = null;
+  await user.save();
+  return res.json({ token: makeToken(user), user: publicUser(user) });
+});
 
-  return res.json({
-    token: makeToken(user),
-    user: publicUser(user)
-  });
+router.post("/auth/change-password", loginLimiter, authenticate, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({ message: "New password must be 12–128 characters." });
+  }
+  const user = await User.findById(req.user._id);
+  if (!user || !(await bcrypt.compare(String(currentPassword || ""), user.passwordHash))) {
+    return res.status(400).json({ message: "Current password is incorrect." });
+  }
+  if (await bcrypt.compare(newPassword, user.passwordHash)) {
+    return res.status(400).json({ message: "Choose a different password." });
+  }
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  user.mustChangePassword = false;
+  user.passwordVersion = Number(user.passwordVersion || 0) + 1;
+  user.passwordChangedAt = new Date();
+  await user.save();
+  return res.json({ token: makeToken(user), user: publicUser(user) });
 });
 
 router.get("/auth/me", authenticate, (req, res) => {
   res.json({ user: publicUser(req.user) });
+});
+
+router.get("/settings/public", (_req, res) => {
+  res.json({ requiredMinutes: requiredMinutes() });
 });
 
 // ATTENDANCE RECORDS
@@ -188,6 +233,18 @@ router.get("/logs", authenticate, async (req, res) => {
 
   if (req.user.role === "student") {
     query.user = req.user._id;
+  } else if (["teacher", "client"].includes(req.user.role)) {
+    const assignment = req.user.role === "teacher" ? "assignedTeacher" : "assignedClient";
+    const students = await User.find({ role: "student", active: true, [assignment]: req.user._id }).select("_id");
+    query.user = { $in: students.map(student => student._id) };
+    if (req.query.studentId) {
+      if (!mongoose.isValidObjectId(req.query.studentId)) return res.status(400).json({ message: "Invalid student ID." });
+      if (!students.some(student => String(student._id) === String(req.query.studentId))) {
+        return res.status(403).json({ message: "Student not assigned to your account." });
+      }
+      query.user = req.query.studentId;
+    }
+    if (req.user.role === "client") query.status = "approved";
   } else if (req.query.studentId) {
     if (!mongoose.isValidObjectId(req.query.studentId)) {
       return res.status(400).json({
@@ -199,6 +256,9 @@ router.get("/logs", authenticate, async (req, res) => {
   }
 
   if (req.query.status) {
+    if (req.user.role === "client" && req.query.status !== "approved") {
+      return res.status(403).json({ message: "Clients can only view approved attendance." });
+    }
     query.status = req.query.status;
   }
 
@@ -454,7 +514,7 @@ router.patch(
 router.patch(
   "/logs/:id/review",
   authenticate,
-  allowRoles("coordinator", "admin"),
+  allowRoles("admin"),
   async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({
@@ -487,29 +547,16 @@ router.patch(
       });
     }
 
+    const before = recordSnapshot(entry);
     if (status === "approved") {
       const approved = await TimeEntry.aggregate([
-        {
-          $match: {
-            user: entry.user,
-            status: "approved",
-            _id: { $ne: entry._id }
-          }
-        },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: "$minutes" }
-          }
-        }
+        { $match: { user: entry.user, status: "approved", _id: { $ne: entry._id } } },
+        { $group: { _id: null, minutes: { $sum: "$minutes" } } }
       ]);
-
-      const total = approved[0]?.total || 0;
-
-      if (total + entry.minutes > 240 * 60) {
-        return res.status(400).json({
-          message: "Approving this entry would exceed the current 240-hour requirement."
-        });
+      const student = await User.findById(entry.user).select("requiredMinutesOverride").lean();
+      const exceedsTarget = (approved[0]?.minutes || 0) + entry.minutes > studentRequiredMinutes(student);
+      if (exceedsTarget && (req.user.role !== "admin" || req.body?.allowOverTarget !== true || String(reason || "").trim().length < 10)) {
+        return res.status(400).json({ message: "Hours exceed the target. Only Admin can approve beyond it with an explicit flag and reason." });
       }
     }
 
@@ -523,6 +570,8 @@ router.patch(
     entry.reviewedAt = new Date();
 
     await entry.save();
+    await auditChange(req.user._id, `Admin ${status} hours`, String(entry.user),
+      before, recordSnapshot(entry), { targetId: entry._id });
 
     return res.json({ entry });
   }
@@ -533,12 +582,11 @@ router.patch(
 router.get(
   "/users",
   authenticate,
-  allowRoles("coordinator", "admin"),
-  async (_req, res) => {
-    const users = await User.find({
-      role: "student",
-      active: true
-    })
+  allowRoles("teacher", "admin"),
+  async (req, res) => {
+    const query = { role: "student", active: true };
+    if (req.user.role === "teacher") query.assignedTeacher = req.user._id;
+    const users = await User.find(query)
       .select("name email studentNo company")
       .sort({ name: 1 });
 

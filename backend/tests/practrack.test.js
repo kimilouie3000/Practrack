@@ -38,8 +38,8 @@ describe("Additional PracTrack rules", () => {
     expect(validateDailyMinutes(13 * 60)).toBe(false);
   });
 
-  it("does not allow approved hours to exceed the 240-hour requirement", () => {
-    expect(validateTotalHours(200 * 60, 40 * 60)).toBe(true);
-    expect(validateTotalHours(235 * 60, 10 * 60)).toBe(false);
+  it("does not allow approved hours to exceed the 400-hour requirement", () => {
+    expect(validateTotalHours(360 * 60, 40 * 60)).toBe(true);
+    expect(validateTotalHours(395 * 60, 10 * 60)).toBe(false);
   });
 });

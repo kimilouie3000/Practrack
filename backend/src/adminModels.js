@@ -17,10 +17,14 @@ const adminEventSchema = new mongoose.Schema({
     required: true,
     maxlength: 160
   },
+  before: { type: mongoose.Schema.Types.Mixed, default: null },
+  after: { type: mongoose.Schema.Types.Mixed, default: null },
+  targetId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  requestId: { type: mongoose.Schema.Types.ObjectId, default: null },
   details: {
     type: String,
     default: "",
-    maxlength: 300
+    maxlength: 1000
   }
 }, { timestamps: true });
 

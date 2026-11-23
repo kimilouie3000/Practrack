@@ -34,7 +34,7 @@ export function validateTimeRange(timeIn, timeOut) {
 export function validateTotalHours(
   currentMinutes,
   addingMinutes,
-  requiredMinutes = 240 * 60
+  requiredMinutes = 400 * 60
 ) {
   return Number.isInteger(currentMinutes) &&
     Number.isInteger(addingMinutes) &&

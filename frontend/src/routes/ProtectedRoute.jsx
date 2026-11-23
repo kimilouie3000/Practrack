@@ -1,4 +1,6 @@
 
+import { roleHome } from "../utils/roleHome";
+
 import {
   Navigate,
   Outlet,
@@ -43,11 +45,7 @@ export default function ProtectedRoute({
   ) {
     return (
       <Navigate
-        to={
-          user?.role === "admin"
-            ? "/admin"
-            : "/dashboard"
-        }
+        to={roleHome(user?.role)}
         replace
       />
     );

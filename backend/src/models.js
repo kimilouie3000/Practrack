@@ -25,9 +25,11 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["student", "coordinator", "admin"],
+    enum: ["student", "teacher", "client", "admin"],
     default: "student"
   },
+  assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+  assignedClient: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
   company: {
     type: String,
     default: ""
@@ -36,6 +38,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  archivedAt: { type: Date, default: null },
+  // Null = system default. Positive whole minutes = student-specific target.
+  requiredMinutesOverride: { type: Number, default: null, min: 1 },
+  failedLoginAttempts: { type: Number, default: 0, select: false },
+  lockedUntil: { type: Date, default: null, select: false },
+  mustChangePassword: { type: Boolean, default: false },
+  passwordVersion: { type: Number, default: 0 },
+  passwordChangedAt: { type: Date, default: null },
   profile: {
     phone: {
       type: String,
@@ -90,8 +100,19 @@ const timeEntrySchema = new mongoose.Schema({
   },
   minutes: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
+  hourOverride: {
+    type: Boolean,
+    default: false
+  },
+  hourAdjustmentReason: {
+    type: String,
+    default: "",
+    maxlength: 1000
+  },
+  allowOverTarget: { type: Boolean, default: false },
   description: {
     type: String,
     required: true,

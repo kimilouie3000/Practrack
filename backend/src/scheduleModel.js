@@ -8,6 +8,8 @@ const scheduleSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  // null means a recurring weekly schedule; YYYY-MM-DD means a dated session.
+  date: { type: String, default: null, match: /^\d{4}-\d{2}-\d{2}$/ },
   dayOfWeek: {
     type: Number,
     required: true,

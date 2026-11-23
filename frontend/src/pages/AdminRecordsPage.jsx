@@ -40,7 +40,10 @@ const EMPTY = {
   description: "",
   company: "",
   status: "pending",
-  rejectionReason: ""
+  rejectionReason: "",
+  hourOverride: false,
+  creditedHours: "",
+  hourAdjustmentReason: ""
 };
 
 function editForm(entry) {
@@ -55,7 +58,10 @@ function editForm(entry) {
     description: entry.description || "",
     company: entry.company || "",
     status: entry.status,
-    rejectionReason: entry.rejectionReason || ""
+    rejectionReason: entry.rejectionReason || "",
+    hourOverride: entry.hourOverride === true,
+    creditedHours: entry.hourOverride ? String(entry.minutes / 60) : "",
+    hourAdjustmentReason: entry.hourAdjustmentReason || ""
   };
 }
 
@@ -94,11 +100,29 @@ export default function AdminRecordsPage() {
   async function save(event) {
     event.preventDefault();
 
-    const error = validateEntry(form);
+    const error = validateEntry(form, {
+      allowFuture: true,
+      allowLongDuration: true,
+      allowMultipleDays: true
+    });
 
     if (error) {
       toast.error(error);
       return;
+    }
+
+    if (form.hourOverride) {
+      const hours = Number(form.creditedHours);
+      if (form.creditedHours.trim() === "" ||
+          !Number.isFinite(hours) || hours < 0 ||
+          !Number.isSafeInteger(Math.round(hours * 60))) {
+        toast.error("Enter valid credited hours (zero or higher, no maximum).");
+        return;
+      }
+      if (form.hourAdjustmentReason.trim().length < 5) {
+        toast.error("Explain the adjustment in at least 5 characters.");
+        return;
+      }
     }
 
     if (
@@ -332,6 +356,9 @@ export default function AdminRecordsPage() {
                       {entry.status === "active"
                         ? "Running"
                         : formatMinutes(entry.minutes)}
+                      {entry.hourOverride && (
+                        <small>Admin-adjusted credit</small>
+                      )}
                     </td>
 
                     <td className="activity-cell">
@@ -535,6 +562,45 @@ export default function AdminRecordsPage() {
               }
             />
           </label>
+
+          <label className="field field-full" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <input
+              type="checkbox"
+              style={{ width: 18, height: 18, flexShrink: 0 }}
+              checked={form.hourOverride}
+              onChange={event => updateForm("hourOverride", event.target.checked)}
+            />
+            Admin override: manually set credited hours (no maximum)
+          </label>
+
+          {form.hourOverride && (
+            <>
+              <label className="field">
+                Credited hours
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  required
+                  placeholder="e.g. 400"
+                  value={form.creditedHours}
+                  onChange={event => updateForm("creditedHours", event.target.value)}
+                />
+              </label>
+              <label className="field field-full">
+                Reason for adjustment
+                <textarea
+                  required
+                  minLength={5}
+                  maxLength={1000}
+                  rows={2}
+                  placeholder="Explain the correction or approved credit"
+                  value={form.hourAdjustmentReason}
+                  onChange={event => updateForm("hourAdjustmentReason", event.target.value)}
+                />
+              </label>
+            </>
+          )}
 
           <label className="field field-full">
             Company

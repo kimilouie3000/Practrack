@@ -7,8 +7,12 @@ export async function apiRequest(path, options = {}, token = "") {
   const response = await fetch(`${API_URL}/api${path}`, {
     ...options,
     headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.body
+        ? { "Content-Type": "application/json" }
+        : {}),
+      ...(token
+        ? { Authorization: `Bearer ${token}` }
+        : {}),
       ...options.headers
     }
   });
@@ -16,7 +20,24 @@ export async function apiRequest(path, options = {}, token = "") {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong.");
+    const error = new Error(
+      data.message || "Something went wrong."
+    );
+
+    error.status = response.status;
+    error.code = data.code;
+
+    if (
+      response.status === 401 &&
+      token &&
+      path !== "/auth/login"
+    ) {
+      window.dispatchEvent(
+        new Event("practrack:session-expired")
+      );
+    }
+
+    throw error;
   }
 
   return data;
