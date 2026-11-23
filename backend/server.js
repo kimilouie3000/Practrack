@@ -17,7 +17,19 @@ async function startServer() {
   }
 
   try {
-    await mongoose.connect(mongoUri);
+    const stagingDatabase = process.env.MONGODB_DATABASE?.trim();
+
+  if (stagingDatabase && !/^[A-Za-z0-9_-]+$/.test(stagingDatabase)) {
+    throw new Error("MONGODB_DATABASE contains invalid characters.");
+  }
+
+  await mongoose.connect(mongoUri, stagingDatabase ? { dbName: stagingDatabase } : {});
+  console.log(`Connected to MongoDB database: ${mongoose.connection.name}`);
+
+  if (stagingDatabase) {
+    const count = await mongoose.connection.db.collection("users").countDocuments();
+    console.log(`User documents in selected database: ${count}`);
+  }
     console.log("Connected to MongoDB.");
 
     app.listen(port, "0.0.0.0", () => {
