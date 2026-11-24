@@ -69,6 +69,7 @@ const RecordsPage = lazy(
 const ProfilePage = lazy(
   () => import("./pages/ProfilePage")
 );
+const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
 
 // Admin pages
 const AdminOverviewPage = lazy(
@@ -698,6 +699,7 @@ function AppRoutes() {
         />
 
         <Route element={<ProtectedRoute />}>
+          <Route path="/change-password" element={<LazyPage><ChangePasswordPage /></LazyPage>} />
           <Route element={<AppLayout />}>
             {/* Student onboarding */}
             <Route
