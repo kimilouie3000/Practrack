@@ -174,8 +174,15 @@ export default function AppLayout() {
   useEffect(() => {
     setDrawer(false);
     setProfileMenu(false);
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname]);
+
+  // Keep the page behind the drawer stationary on narrow screens.
+  useEffect(() => {
+    if (!drawer) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [drawer]);
 
   useEffect(() => {
     if (!drawer) return;
@@ -322,6 +329,7 @@ export default function AppLayout() {
         }`}
         aria-label="Mobile sidebar"
         aria-hidden={!drawer}
+        inert={drawer ? undefined : ""}
       >
         <div className="sidebar-brand">
           <SidebarBrand
@@ -450,7 +458,9 @@ export default function AppLayout() {
         </header>
 
         <main className="main-content">
-          <Outlet />
+          <div key={location.pathname} className="workspace-page-transition">
+            <Outlet />
+          </div>
         </main>
 
         <footer className="app-footer">
