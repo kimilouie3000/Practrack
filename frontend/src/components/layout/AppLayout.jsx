@@ -329,7 +329,7 @@ export default function AppLayout() {
         }`}
         aria-label="Mobile sidebar"
         aria-hidden={!drawer}
-        inert={!drawer}
+        inert={drawer ? undefined : ""}
       >
         <div className="sidebar-brand">
           <SidebarBrand
