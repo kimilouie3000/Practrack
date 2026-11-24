@@ -58,3 +58,36 @@ export function parseRequiredHours(value) {
   if (Math.abs(minutes / 60 - hours) > 0.000001) return undefined;
   return minutes;
 }
+
+/**
+ * An account's token version must match the current password version.
+ * Tokens minted before a password reset must no longer authenticate.
+ */
+export function isAccountSessionValid(user, payload) {
+  return Boolean(
+    user &&
+    user.active === true &&
+    !user.archivedAt &&
+    payload &&
+    Number.isSafeInteger(payload.ver) &&
+    payload.ver >= 0 &&
+    payload.ver === Number(user.passwordVersion || 0)
+  );
+}
+
+/** Return an actionable registration message without throwing on invalid JSON. */
+export function registrationValidationMessage({ name, email, password, studentNo } = {}) {
+  if (typeof name !== "string" || name.trim().length < 2 || name.trim().length > 100) {
+    return "Full name must be between 2 and 100 characters.";
+  }
+  if (typeof email !== "string" || !isPracTrackEmail(email)) {
+    return "Use a username@practrack.com login address.";
+  }
+  if (!isStrongPassword(password)) {
+    return "Password must be 12–128 characters.";
+  }
+  if (typeof studentNo !== "string" || !/^\d{4}-\d{5}$/.test(studentNo.trim())) {
+    return "Use the student number format YYYY-NNNNN.";
+  }
+  return null;
+}
