@@ -235,7 +235,7 @@ export default function RecordsPage() {
 
       <Panel
         title="Time entries"
-        caption={`${filtered.length} matching loaded records · ${totalEntries} total`
+        caption={`${filtered.length} matching loaded records · ${totalEntries} total`}
       >
         <div className="records-toolbar">
           <div
