@@ -1,6 +1,7 @@
 
 import jwt from "jsonwebtoken";
 import { User } from "../models.js";
+import { isAccountSessionValid } from "../securityPolicy.js";
 
 export async function authenticate(req, res, next) {
   try {
@@ -18,7 +19,7 @@ export async function authenticate(req, res, next) {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.id).select("-passwordHash");
 
-    if (!user || !user.active) {
+    if (!isAccountSessionValid(user, payload)) {
       return res.status(401).json({
         message: "Your account is unavailable."
       });
