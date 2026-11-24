@@ -85,8 +85,13 @@ export function useApiAction() {
         token
       ),
 
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       if (variables.path === "/profile") {
+        // Update the onboarding gate immediately before navigation.
+        // A background refetch still reconciles server-side changes.
+        if (data?.profile) {
+          client.setQueryData(["profile", token], data.profile);
+        }
         client.invalidateQueries({
           queryKey: ["profile", token]
         });
