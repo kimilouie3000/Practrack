@@ -2693,3 +2693,58 @@ small {
     grid-template-columns: 1fr;
   }
 }
+
+/* Smooth workspace navigation: animate only the route content, not the whole shell. */
+.workspace-page-transition {
+  animation: workspace-page-enter 220ms cubic-bezier(.2, .75, .25, 1) both;
+}
+@keyframes workspace-page-enter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sidebar .nav-link,
+.mobile-drawer .nav-link {
+  transition: background-color 180ms ease, color 180ms ease,
+              transform 180ms cubic-bezier(.2, .75, .25, 1);
+}
+.sidebar .nav-link:hover,
+.mobile-drawer .nav-link:hover {
+  transform: translateX(2px);
+}
+.sidebar .nav-link:active,
+.mobile-drawer .nav-link:active {
+  transform: translateX(0);
+}
+.bottom-nav a {
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.bottom-nav a svg {
+  transition: transform 180ms cubic-bezier(.2, .75, .25, 1);
+}
+.bottom-nav a.active svg {
+  transform: translateY(-2px);
+}
+.nav-link:focus-visible,
+.bottom-nav a:focus-visible,
+.mobile-menu:focus-visible,
+.collapse-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-page-transition {
+    animation: none;
+  }
+  .sidebar .nav-link,
+  .mobile-drawer .nav-link,
+  .bottom-nav a,
+  .bottom-nav a svg {
+    transition: none;
+  }
+  .sidebar .nav-link:hover,
+  .mobile-drawer .nav-link:hover,
+  .bottom-nav a.active svg {
+    transform: none;
+  }
+}
