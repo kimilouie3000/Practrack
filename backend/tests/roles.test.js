@@ -17,7 +17,8 @@ const state = vi.hoisted(() => ({
 vi.mock("jsonwebtoken", () => ({
   default: {
     verify: () => ({
-      id: "507f191e810c19729de860ea"
+      id: "507f191e810c19729de860ea",
+      ver: 0
     }),
     sign: () => "token"
   }
