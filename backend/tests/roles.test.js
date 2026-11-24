@@ -5,6 +5,7 @@ import request from "supertest";
 
 const state = vi.hoisted(() => ({
   role: "teacher",
+  mustChangePassword: false,
   findOne: vi.fn(),
   findRecord: vi.fn(),
   findRequest: vi.fn(),
@@ -35,6 +36,7 @@ vi.mock("../src/models.js", () => ({
         _id: "507f191e810c19729de860ea",
         role: state.role,
         active: true,
+        mustChangePassword: state.mustChangePassword,
         name: "Test user"
       })
     }),
@@ -93,6 +95,7 @@ beforeEach(() => {
   });
 
   state.role = "teacher";
+  state.mustChangePassword = false;
   state.findOne.mockResolvedValue(null);
   state.exists.mockResolvedValue(false);
   state.aggregate.mockResolvedValue([]);
@@ -100,6 +103,15 @@ beforeEach(() => {
 });
 
 describe("PracTrack v2 permissions", () => {
+  it("forces temporary-password accounts to change password before protected routes", async () => {
+    state.mustChangePassword = true;
+    const blocked = await request(app).get("/api/schedule").set("Authorization", token);
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.code).toBe("PASSWORD_CHANGE_REQUIRED");
+    const allowed = await request(app).get("/api/auth/me").set("Authorization", token);
+    expect(allowed.status).toBe(200);
+  });
+
   it("teacher cannot edit records directly", async () => {
     const result = await request(app)
       .patch(`/api/admin/records/${recordId}`)
