@@ -116,11 +116,11 @@ export default function AdminRecordsPage() {
       if (form.creditedHours.trim() === "" ||
           !Number.isFinite(hours) || hours < 0 ||
           !Number.isSafeInteger(Math.round(hours * 60))) {
-        toast.error("Enter valid credited hours (zero or higher, no maximum).");
+        toast.error("Enter valid non-negative credited hours.");
         return;
       }
-      if (form.hourAdjustmentReason.trim().length < 5) {
-        toast.error("Explain the adjustment in at least 5 characters.");
+      if (form.hourAdjustmentReason.trim().length < 10) {
+        toast.error("Explain the adjustment in at least 10 characters.");
         return;
       }
     }
