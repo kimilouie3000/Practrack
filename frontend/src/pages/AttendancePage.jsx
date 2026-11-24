@@ -18,6 +18,7 @@ import {
 
 import useAuth from "../hooks/useAuth";
 import useTimer from "../hooks/useTimer";
+import { practicumDate } from "../utils/practicumDate";
 
 import {
   useApiAction,
@@ -77,8 +78,8 @@ export default function AttendancePage() {
       entries.filter(
         item =>
           item.startAt &&
-          new Date(item.startAt).toDateString() ===
-            new Date().toDateString()
+          practicumDate(item.startAt) ===
+            practicumDate(new Date())
       ),
     [entries]
   );
