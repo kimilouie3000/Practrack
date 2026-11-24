@@ -31,6 +31,7 @@ import {
 // Load the WebGL avatar only on the login/register page, not inside dashboards.
 const YetiAvatar = lazy(() => import("./components/YetiAvatar"));
 import { roleHome } from "./utils/roleHome";
+import { registrationError, REGISTRATION_PASSWORD_MIN } from "./utils/registrationValidation";
 import "./portal.css";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -200,28 +201,9 @@ function AuthPage() {
     }
 
     if (isRegister) {
-      if (form.name.trim().length < 2) {
-        toast.error(
-          "Enter your complete name."
-        );
-        return;
-      }
-
-      if (
-        !/^\d{4}-\d{5}$/.test(
-          form.studentNo.trim()
-        )
-      ) {
-        toast.error(
-          "Student number must follow YYYY-NNNNN."
-        );
-        return;
-      }
-
-      if (form.password.length < 8) {
-        toast.error(
-          "Password must contain at least 8 characters."
-        );
+      const error = registrationError({ ...form, email });
+      if (error) {
+        toast.error(error);
         return;
       }
     }
@@ -358,7 +340,7 @@ function AuthPage() {
 
           <p className="subtle">
             {isRegister
-              ? "Register to start tracking your practicum journey."
+              ? "Register using a PracTrack login address and a secure password."
               : "Sign in to continue to your workspace."}
           </p>
 
@@ -425,6 +407,9 @@ function AuthPage() {
                 )
               }
             />
+            {isRegister && (
+              <small>Use a unique username@practrack.com address. Other email domains are not supported for new accounts.</small>
+            )}
           </label>
 
           <label className="field">
@@ -448,14 +433,14 @@ function AuthPage() {
                 name="password"
                 required
                 minLength={
-                  isRegister ? 8 : undefined
+                  isRegister ? REGISTRATION_PASSWORD_MIN : undefined
                 }
                 autoComplete={
                   isRegister
                     ? "new-password"
                     : "current-password"
                 }
-                placeholder="Enter your password"
+                placeholder={isRegister ? "At least 12 characters" : "Enter your password"}
                 value={form.password}
                 onChange={event =>
                   updateForm(
@@ -486,6 +471,9 @@ function AuthPage() {
                 )}
               </button>
             </div>
+            {isRegister && (
+              <small>Use 12–128 characters. Avoid reusing passwords from other accounts.</small>
+            )}
           </label>
 
           <button
