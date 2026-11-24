@@ -570,7 +570,7 @@ export default function AdminRecordsPage() {
               checked={form.hourOverride}
               onChange={event => updateForm("hourOverride", event.target.checked)}
             />
-            Admin override: manually set credited hours (no maximum)
+            Admin override: manually set credited hours (subject to server safety limit)
           </label>
 
           {form.hourOverride && (
