@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import useAuth from "../hooks/useAuth";
+import { profileUpdatePayload } from "../utils/profilePayload";
 
 import {
   useApiAction,
@@ -93,7 +94,7 @@ export default function ProfilePage({
       await action.mutateAsync({
         path: "/profile",
         method: "PATCH",
-        body: form
+        body: profileUpdatePayload(form, user?.role)
       });
 
       toast.success(
@@ -182,6 +183,7 @@ export default function ProfilePage({
                 minLength={2}
                 maxLength={100}
                 autoComplete="name"
+                readOnly={student}
                 value={form.name}
                 onChange={event =>
                   setForm({
@@ -190,6 +192,9 @@ export default function ProfilePage({
                   })
                 }
               />
+              {student && (
+                <small>Your registered name can be corrected by an administrator.</small>
+              )}
             </label>
 
             <label className="field">
@@ -329,6 +334,7 @@ export default function ProfilePage({
 
               <input
                 maxLength={120}
+                readOnly={student}
                 value={form.company}
                 onChange={event =>
                   setForm({
@@ -336,8 +342,11 @@ export default function ProfilePage({
                     company: event.target.value
                   })
                 }
-                placeholder="Training organization name"
+                placeholder={student ? "Assigned by an administrator" : "Training organization name"}
               />
+              {student && (
+                <small>Your training organization is assigned by an administrator.</small>
+              )}
             </label>
 
             <label className="field field-full">
