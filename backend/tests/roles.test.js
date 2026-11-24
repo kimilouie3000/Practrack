@@ -25,6 +25,10 @@ vi.mock("jsonwebtoken", () => ({
 }));
 
 vi.mock("../src/models.js", () => ({
+  AttendanceLock: {
+    deleteOne: vi.fn().mockResolvedValue({ deletedCount: 1 }),
+    create: vi.fn().mockResolvedValue({})
+  },
   User: {
     findById: () => ({
       select: async () => ({
