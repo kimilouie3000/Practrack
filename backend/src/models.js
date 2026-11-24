@@ -148,3 +148,16 @@ export const User = mongoose.models.User ||
 
 export const TimeEntry = mongoose.models.TimeEntry ||
   mongoose.model("TimeEntry", timeEntrySchema);
+
+/**
+ * A per-student write lock serializes attendance mutations across server instances.
+ * The _id (student ID) is unique, preventing parallel overlapping submissions.
+ */
+const attendanceLockSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  token: { type: String, required: true },
+  expiresAt: { type: Date, required: true }
+}, { versionKey: false });
+attendanceLockSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+export const AttendanceLock = mongoose.models.AttendanceLock ||
+  mongoose.model("AttendanceLock", attendanceLockSchema);
