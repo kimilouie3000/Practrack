@@ -257,12 +257,18 @@ router.get("/logs", authenticate, async (req, res) => {
     }
   }
 
-  const entries = await TimeEntry.find(query)
-    .populate("user", "name email studentNo")
-    .sort({ createdAt: -1 })
-    .limit(500);
+  const page = Math.min(100000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
+  const limit = Math.min(500, Math.max(1, Number.parseInt(req.query.limit, 10) || 500));
+  const [entries, total] = await Promise.all([
+    TimeEntry.find(query)
+      .populate("user", "name email studentNo")
+      .sort({ createdAt: -1, _id: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    TimeEntry.countDocuments(query)
+  ]);
 
-  res.json({ entries });
+  res.json({ entries, total, page, pages: Math.max(1, Math.ceil(total / limit)) });
 });
 
 // CLOCK IN
