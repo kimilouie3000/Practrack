@@ -1,5 +1,5 @@
 import { rateLimit } from "express-rate-limit";
-import { normalizedEmail, isPracTrackEmail, isStrongPassword, AUTH_LIMIT, AUTH_LOCK_MS, requiredMinutes, studentRequiredMinutes } from "./securityPolicy.js";
+import { normalizedEmail, isPracTrackEmail, isStrongPassword, AUTH_LIMIT, AUTH_LOCK_MS, requiredMinutes, studentRequiredMinutes, registrationValidationMessage } from "./securityPolicy.js";
 
 import { Router } from "express";
 import bcrypt from "bcryptjs";
@@ -107,27 +107,10 @@ const registerLimiter = rateLimit({ windowMs: 60 * 60_000, limit: 10,
 
 router.post("/auth/register", registerLimiter, async (req, res) => {
   try {
-    const { name, email, password, studentNo } = req.body;
-
-    if (!name?.trim() || !email?.trim() || !password || !studentNo) {
-      return res.status(400).json({
-        message: "Complete all required fields."
-      });
-    }
-
-    if (!isStrongPassword(password)) {
-      return res.status(400).json({
-        message: "Password must be 12–128 characters."
-      });
-    }
-    if (!isPracTrackEmail(email)) {
-      return res.status(400).json({ message: "Use a username@practrack.com login address." });
-    }
-
-    if (!isValidStudentNumber(studentNo)) {
-      return res.status(400).json({
-        message: "Use the student number format YYYY-NNNNN."
-      });
+    const { name, email, password, studentNo } = req.body || {};
+    const validationError = registrationValidationMessage({ name, email, password, studentNo });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
     const accountEmail = normalizedEmail(email);
