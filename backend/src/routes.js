@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { User, TimeEntry } from "./models.js";
+import { withAttendanceWriteLock } from "./attendanceLock.js";
 import { auditChange, recordSnapshot } from "./adjustmentService.js";
 import {
   authenticate,
@@ -257,12 +258,18 @@ router.get("/logs", authenticate, async (req, res) => {
     }
   }
 
-  const entries = await TimeEntry.find(query)
-    .populate("user", "name email studentNo")
-    .sort({ createdAt: -1 })
-    .limit(500);
+  const page = Math.min(100000, Math.max(1, Number.parseInt(req.query.page, 10) || 1));
+  const limit = Math.min(500, Math.max(1, Number.parseInt(req.query.limit, 10) || 500));
+  const [entries, total] = await Promise.all([
+    TimeEntry.find(query)
+      .populate("user", "name email studentNo")
+      .sort({ createdAt: -1, _id: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    TimeEntry.countDocuments(query)
+  ]);
 
-  res.json({ entries });
+  res.json({ entries, total, page, pages: Math.max(1, Math.ceil(total / limit)) });
 });
 
 // CLOCK IN
@@ -271,7 +278,7 @@ router.post(
   "/logs/clock-in",
   authenticate,
   allowRoles("student"),
-  async (req, res) => {
+  withAttendanceWriteLock(async (req, res) => {
     const active = await TimeEntry.findOne({
       user: req.user._id,
       status: "active"
@@ -295,7 +302,7 @@ router.post(
     });
 
     return res.status(201).json({ entry });
-  }
+  })
 );
 
 // CLOCK OUT
@@ -304,7 +311,7 @@ router.post(
   "/logs/clock-out",
   authenticate,
   allowRoles("student"),
-  async (req, res) => {
+  withAttendanceWriteLock(async (req, res) => {
     const entry = await TimeEntry.findOne({
       user: req.user._id,
       status: "active"
@@ -353,7 +360,7 @@ router.post(
       message: "Clock-out submitted for approval.",
       entry
     });
-  }
+  })
 );
 
 // CREATE MANUAL RECORD
@@ -362,7 +369,7 @@ router.post(
   "/logs",
   authenticate,
   allowRoles("student"),
-  async (req, res) => {
+  withAttendanceWriteLock(async (req, res) => {
     const {
       startAt,
       endAt,
@@ -412,7 +419,7 @@ router.post(
     });
 
     return res.status(201).json({ entry });
-  }
+  })
 );
 
 // CORRECT AND RESUBMIT REJECTED RECORD
@@ -421,7 +428,7 @@ router.patch(
   "/logs/:id/resubmit",
   authenticate,
   allowRoles("student"),
-  async (req, res) => {
+  withAttendanceWriteLock(async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({
         message: "Invalid entry ID."
@@ -489,7 +496,7 @@ router.patch(
     await entry.save();
 
     return res.json({ entry });
-  }
+  })
 );
 
 // APPROVE OR REJECT HOURS

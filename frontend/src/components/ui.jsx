@@ -1,5 +1,6 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { PRACTICUM_TIME_ZONE } from "../utils/practicumDate";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
@@ -25,6 +26,7 @@ export function formatDate(value) {
   return Number.isNaN(date.getTime())
     ? "—"
     : date.toLocaleDateString("en-PH", {
+        timeZone: PRACTICUM_TIME_ZONE,
         year: "numeric",
         month: "short",
         day: "numeric"
@@ -39,6 +41,7 @@ export function formatTime(value) {
   return Number.isNaN(date.getTime())
     ? "—"
     : date.toLocaleTimeString("en-PH", {
+        timeZone: PRACTICUM_TIME_ZONE,
         hour: "2-digit",
         minute: "2-digit"
       });
@@ -263,23 +266,54 @@ export function Modal({
   children,
   wide = false
 }) {
+  const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
     if (!open) return;
+    const previousFocus = document.activeElement;
+    const dialog = dialogRef.current;
+    const focusables = () => Array.from(dialog?.querySelectorAll(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+    ) || []).filter(element => element.getClientRects().length > 0);
 
-    function escape(event) {
-      if (event.key === "Escape") onClose();
+    // Start at the close button, and keep Tab cycling within the modal.
+    const firstFocus = dialog?.querySelector('button[aria-label="Close dialog"]');
+    firstFocus?.focus();
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+      }
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (!items.length) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialog?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
-    document.addEventListener("keydown", escape);
-
-    const previous = document.body.style.overflow;
+    document.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     return () => {
-      document.removeEventListener("keydown", escape);
-      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return (
     <AnimatePresence>
@@ -296,6 +330,8 @@ export function Modal({
           }}
         >
           <motion.section
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label={title}

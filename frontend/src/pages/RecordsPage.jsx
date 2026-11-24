@@ -18,7 +18,7 @@ import useAuth from "../hooks/useAuth";
 
 import {
   useApiAction,
-  useRecords
+  useRecordHistory
 } from "../hooks/usePracTrack";
 
 import {
@@ -52,7 +52,7 @@ export default function RecordsPage() {
     user?.role
   );
 
-  const records = useRecords();
+  const records = useRecordHistory();
   const action = useApiAction();
 
   const [status, setStatus] = useState("all");
@@ -68,7 +68,8 @@ export default function RecordsPage() {
     description: ""
   });
 
-  const entries = records.data || [];
+  const entries = records.data?.pages.flatMap(page => page.entries || []) || [];
+  const totalEntries = records.data?.pages[0]?.total || 0;
 
   const counts = Object.fromEntries(
     FILTERS.map(key => [
@@ -234,7 +235,7 @@ export default function RecordsPage() {
 
       <Panel
         title="Time entries"
-        caption={`${filtered.length} matching records`}
+        caption={`${filtered.length} matching loaded records · ${totalEntries} total`}
       >
         <div className="records-toolbar">
           <div
@@ -438,6 +439,16 @@ export default function RecordsPage() {
               </div>
             </div>
           </>
+        )}
+        {records.hasNextPage && (
+          <div className="pagination">
+            <span>Showing {entries.length} of {totalEntries} records. Load older entries to search their details.</span>
+            <button type="button" className="btn btn-secondary btn-sm"
+              disabled={records.isFetchingNextPage}
+              onClick={() => records.fetchNextPage()}>
+              {records.isFetchingNextPage ? "Loading..." : "Load older records"}
+            </button>
+          </div>
         )}
       </Panel>
 
