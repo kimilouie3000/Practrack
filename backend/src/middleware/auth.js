@@ -26,6 +26,11 @@ export async function authenticate(req, res, next) {
     }
 
     req.user = user;
+    // Newly provisioned accounts must replace the temporary password first.
+    const passwordSetupRoute = ["/api/auth/me", "/api/auth/change-password"];
+    if (user.mustChangePassword && !passwordSetupRoute.includes(req.originalUrl.split("?")[0])) {
+      return res.status(403).json({ code: "PASSWORD_CHANGE_REQUIRED", message: "Change your temporary password before continuing." });
+    }
     return next();
   } catch {
     return res.status(401).json({
