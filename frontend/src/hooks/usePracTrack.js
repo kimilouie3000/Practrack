@@ -1,6 +1,7 @@
 
 import {
   useMutation,
+  useInfiniteQuery,
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
@@ -31,6 +32,21 @@ export function useRecords() {
     enabled: Boolean(token),
     refetchInterval: 8000,
     refetchOnWindowFocus: true
+  });
+}
+
+// Load attendance history in explicit pages rather than hiding older entries.
+export function useRecordHistory() {
+  const { token } = useAuth();
+  return useInfiniteQuery({
+    queryKey: ["logs-history", token],
+    queryFn: ({ pageParam = 1 }) =>
+      apiRequest(`/logs?page=${pageParam}&limit=100`, {}, token),
+    initialPageParam: 1,
+    getNextPageParam: last => last.page < last.pages ? last.page + 1 : undefined,
+    enabled: Boolean(token),
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 }
 
@@ -107,6 +123,7 @@ export function useApiAction() {
         client.invalidateQueries({
           queryKey: ["logs", token]
         });
+        client.invalidateQueries({ queryKey: ["logs-history", token] });
       }
     }
   });
